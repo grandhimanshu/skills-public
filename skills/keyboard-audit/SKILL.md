@@ -1,239 +1,195 @@
 ---
 name: keyboard-audit
-description: Tests keyboard interactions for Storybook components against WCAG 2.2 AA and repo interaction docs. Navigates stories via Chrome MCP, checks focus/activation/dismiss behaviors, and writes a markdown report. Use when auditing keyboard accessibility for one or all components. Args: optional comma-separated component names (e.g. "Button, Dropdown").
+description: Tests keyboard interactions for Storybook components against WCAG 2.2 AA and repo interaction docs. Navigates stories via Chrome MCP, checks focus/activation/dismiss behaviors, and writes a markdown report. Use when auditing keyboard accessibility for one or all components. Args: optional comma-separated component names or group names (e.g. "Button, Dropdown" or "chat").
 ---
 
 # Keyboard Audit Skill
 
-You are a keyboard accessibility auditor for a React design system Storybook. Your job is to **find and report** keyboard interaction bugs — never fix them.
-
-## Invocation
-
-```
-/keyboard-audit [optional: ComponentName1, ComponentName2, ...]
-```
-
-- **With args:** test only the named components
-- **No args:** discover and test all components via the Storybook sidebar
+You are the **orchestrator** for a keyboard accessibility audit. You coordinate agents, manage files, and present results. You do no discovery, testing, or browser work yourself — all of that is delegated.
 
 ---
 
-## Phase 1: Setup & Verification (MANDATORY FIRST STEP)
+## Phase 0: Kickoff
 
-1. **Ask the user for the Storybook URL.** Say:
-   > "What URL is Storybook running on? (e.g. http://localhost:5000, http://localhost:6006, or a remote URL)"
+**Resolve `skillRoot`:** Run `echo "$HOME/.claude/skills/keyboard-audit"` — save as `skillRoot`. All agent instruction files live here.
 
-2. Use `mcp__Claude_in_Chrome__navigate` to load the provided URL.
+### 0a. Ask for Storybook URL
 
-3. Use `mcp__Claude_in_Chrome__get_page_text` or `mcp__Claude_in_Chrome__read_page` to confirm Storybook loaded (look for sidebar or story content).
+> "What URL is Storybook running on? (e.g. http://localhost:6006)"
 
-4. If it fails: **STOP.** Tell the user Storybook isn't reachable at that URL and ask them to confirm it's running.
+Note any scope args passed to the skill (component names or group names). If none, scope is "all".
 
-5. Record:
-   - `storybookUrl` = the confirmed URL
-   - `runId` = `keyboard-audit-<YYYYMMDD-HHMM>` (use current date/time)
-   - `reportPath` = `keyboard-audit/KEYBOARD_AUDIT_REPORT-<runId>.md`
-
----
-
-## Phase 2: Component Discovery
-
-**If component names were provided as args:**
-- Use those names. Find their entries in the Storybook sidebar to confirm they exist.
-
-**If no args:**
-- Use `mcp__Claude_in_Chrome__read_page` or `mcp__Claude_in_Chrome__get_page_text` to read the sidebar.
-- Extract all component names (they appear as expandable groups in the sidebar).
-- Print the list to the user: "Found N components. Starting audit..."
-
----
-
-## Phase 3: Per-Component Testing Loop (sequential)
-
-Repeat the following for each component:
-
-### 3a. Find Interaction Docs
-
-Search the repo for this component's keyboard interaction documentation:
+### 0b. Spawn the Discovery Agent
 
 ```
-Glob: docs/src/pages/components/<component-name-lowercase>/interactions.mdx
-Glob: docs/src/pages/components/<component-name-lowercase>/*.md
+Read <skillRoot>/discovery-agent.md and follow its instructions exactly.
+
+Storybook URL: <storybookUrl>
+Scope args:    <args or "all">
+Today's date:  <YYYYMMDD>
 ```
 
-- Read the file if found. Extract every keyboard interaction claim (Tab, Enter, Space, Escape, arrows, etc.).
-- If no doc found → note "No interaction docs" and rely on WCAG 2.2 AA rules only.
+Wait for it to return a `DISCOVERY_RESULT` or `PREFLIGHT_FAILED` block.
 
-### 3b. Build Expected Interaction Matrix
+- **`PREFLIGHT_FAILED`** → show the failure to the user and stop.
+- **`DISCOVERY_RESULT`** → extract `runId`, `total_batches`, `total_components`, `scope`, and all batch data.
 
-Combine doc claims with WCAG 2.2 AA requirements for the component's ARIA role:
+### 0c. Show Plan & Wait for Confirmation
 
-| ARIA Role | WCAG 2.2 AA Required Keyboard Behaviors |
-|-----------|------------------------------------------|
-| `button` | Tab (receive focus), Enter / Space (activate) |
-| `link` | Tab (receive focus), Enter (activate) |
-| `checkbox` | Tab (receive focus), Space (toggle checked) |
-| `radio` | Tab to group, Arrow keys (move selection within group), Space (select) |
-| `combobox` / `listbox` | Tab (focus), Arrow Down/Up (navigate options), Enter (select), Escape (close/cancel) |
-| `dialog` | Tab / Shift+Tab (cycle focus within dialog), Escape (close dialog) |
-| `menu` / `menuitem` | Arrow Down/Up (navigate), Enter/Space (activate item), Escape (close menu), Tab (close and move focus out) |
-| `slider` | Tab (focus), Arrow Left/Right or Down/Up (change value), Home/End (min/max) |
-| `tablist` / `tab` | Tab (focus tablist), Arrow Left/Right (switch tabs) |
-| `tree` / `treeitem` | Tab (focus), Arrow Down/Up (navigate), Arrow Right (expand), Arrow Left (collapse), Enter (select) |
-| `grid` / `gridcell` | Arrow keys (navigate cells), Tab (exit grid), Enter (edit cell) |
-| `switch` | Tab (focus), Space (toggle) |
+```
+## Keyboard Audit Plan — <runId>
 
-Add any extra behaviors found in the interaction docs on top of the WCAG baseline.
+Storybook: <storybookUrl>
+Scope: <scope>
 
-### 3c. Story Selection
+### Batches (<N> batches, <M> components, running in parallel):
 
-1. Expand the component in the Storybook sidebar and list all its stories.
-2. Select up to **5 stories** that best cover edge cases:
-   - Always include the default/index story
-   - Prioritize: Controlled, Disabled, Error/Invalid state, Open/Expanded state, multi-item variants
-   - Avoid pure visual stories (e.g. "Size", "Color") unless they affect keyboard behavior
-3. If a critical edge case has **no story** (e.g. dropdown has no "open state" story for testing arrow navigation):
-   - Add it to the **Missing Stories list** at the end
-   - Still test what you can with existing stories
+#### Batch 1 — <label> (N stories)
+- ComponentA: Story1 [story-id], Story2 [story-id]
+  [excluded: X (size variant)]
+- ComponentB: Story1 [story-id]
 
-### 3d. Browser Testing
+#### Batch 2 — ...
 
-For each selected story:
+Ready to start? (yes / skip <Component> / stop)
+```
 
-1. **Navigate:** Click through the Storybook sidebar to open the story (never guess `?path=` URLs). Use `mcp__Claude_in_Chrome__find` to locate sidebar items, then `mcp__Claude_in_Chrome__preview_click` or `mcp__Claude_in_Chrome__form_input` to interact.
-
-2. **Switch to Story view** if Storybook defaults to Docs view — look for a "Story" tab or canvas button and click it.
-
-3. **For each expected interaction:**
-   - Use `mcp__Claude_in_Chrome__javascript_tool` to send keyboard events:
-     ```javascript
-     // Focus the component first
-     document.querySelector('[role="button"]')?.focus();
-     // Then dispatch key
-     document.activeElement.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', bubbles: true}));
-     ```
-   - Or use `mcp__Claude_in_Chrome__shortcuts_execute` for Tab/Shift+Tab navigation.
-   - Check result with:
-     ```javascript
-     // Focus check
-     document.activeElement?.getAttribute('role') + ' | ' + document.activeElement?.textContent?.trim()
-     // State check
-     document.querySelector('[aria-expanded]')?.getAttribute('aria-expanded')
-     document.querySelector('[aria-checked]')?.getAttribute('aria-checked')
-     ```
-
-4. **Record result:**
-   - ✅ PASS — behavior matches expectation
-   - ❌ FAIL — behavior is wrong or missing (note expected vs actual)
-   - ⚠️ PARTIAL — partially works (note what's missing)
-   - ⏭️ SKIP — couldn't test (note reason)
-
-5. **Evidence:** Prefer DOM state over screenshots. Use `mcp__Claude_in_Chrome__read_page` snapshot only for ambiguous failures.
-
-6. **Reset state** before the next story: reload the page if the component left state behind.
+- `"yes"` / `"go"` → proceed
+- `"skip X"` → remove X from batch data, re-number if needed
+- `"stop"` / `"cancel"` → abort
 
 ---
 
-## Phase 4: Report Generation
+## Phase 1: Initialize Files
 
-### Output folder convention (always follow)
+Resolve absolute paths (audit agents run in isolated worktrees — relative paths won't work):
+- `repoRoot`         = absolute path to this repo
+- `progressPath`     = `<repoRoot>/keyboard-audit/PROGRESS-<runId>.md`
+- `batchFilePath(N)` = `<repoRoot>/keyboard-audit/batch-<N>-<runId>.md`
+- `finalReportPath`  = `<repoRoot>/keyboard-audit/FINAL-REPORT-<runId>.md`
 
-All work goes under `keyboard-audit/` in the repo root:
-- **Main files** (reports, summaries) → `keyboard-audit/` root
-- **Screenshots and non-main files** (evidence, scratch) → `keyboard-audit/screenshots/`
-
-Every screenshot taken during testing MUST be saved to `keyboard-audit/screenshots/`.
-
-### Write the report file
-
-Create `keyboard-audit/KEYBOARD_AUDIT_REPORT-<runId>.md` with this structure:
-
+**Create `progressPath`** (orchestrator-owned — only you write to this):
 ```markdown
-# Keyboard Audit Report — <runId>
+# Keyboard Audit Progress — <runId>
 
-**Date:** <date>
-**Storybook URL:** <url>
-**Components tested:** <count>
-**Run by:** Claude Code keyboard-audit skill
+**Started:** <datetime>
+**Storybook:** <url>
+**Scope:** <scope>
 
----
+## Batches
 
-## Summary
+| Batch | Label | Batch File | Status |
+|-------|-------|-----------|--------|
+| 1 | <label> | <repoRoot>/keyboard-audit/batch-1-<runId>.md | ⏳ pending |
+| 2 | <label> | <repoRoot>/keyboard-audit/batch-2-<runId>.md | ⏳ pending |
 
-| Metric | Count |
-|--------|-------|
-| Components tested | N |
-| Total interactions tested | N |
-| ✅ Pass | N |
-| ❌ Fail | N |
-| ⚠️ Partial | N |
+## Files
+- Final report:   <finalReportPath>
 
----
-
-## Per-Component Results
-
-### <ComponentName>
-
-**Docs:** Found at `docs/src/pages/components/<name>/interactions.mdx` / Not found
-**Stories tested:** Story1, Story2, ...
-
-#### Interaction Matrix
-
-| Key(s) | Expected Behavior | Result | Evidence |
-|--------|-------------------|--------|----------|
-| Tab | Focus moves to component | ✅ PASS | `activeElement: button#submit` |
-| Enter | Activates button | ❌ FAIL | No action triggered; expected `onClick` call |
-| Escape | Closes dropdown | ⚠️ PARTIAL | Closes but focus not returned to trigger |
-
-#### Bugs Found
-
-- **[FAIL] Enter key does not activate:** Expected button to fire onClick on Enter. `document.activeElement` confirmed focus was on the button but no click event fired.
-
----
-
-## Missing Stories Needed
-
-| Component | Missing Story | Why It's Needed |
-|-----------|--------------|-----------------|
-| Dropdown | Open state (with options visible) | Can't test Arrow/Enter/Escape without the dropdown being open |
-| Modal | Focus trap test | Can't verify Tab cycling without a story that keeps the modal open |
-
----
-
-## WCAG 2.2 AA Gaps (claimed in docs but not verified / not documented at all)
-
-List any interactions required by WCAG that had no corresponding story or doc coverage.
+## How to Resume (if interrupted)
+1. Open a new Claude Code session.
+2. Read this file — see which batches completed vs pending.
+3. Read each batch file for its status.
+4. Run `/keyboard-audit` and say:
+   "Resume audit <runId>. Storybook at <url>. Batches done: <list>. Continue from batch <N>."
 ```
 
-### Print inline summary
+> **Do not pre-create batch files.** Each audit agent creates its own `batch-N-<runId>.md` on startup.
 
-After writing the file, print a short summary:
+---
+
+## Phase 2: Spawn Audit Agents + Monitor
+
+In a **single message**, spawn all audit agents in parallel and start the monitor loop.
+
+### Audit agent prompt (one per batch)
+
+**Do not paste audit-agent.md** — pass the file path:
+
+```
+Read <skillRoot>/audit-agent.md and follow its instructions exactly.
+
+Storybook URL:  <storybookUrl>
+Batch file:     <repoRoot>/keyboard-audit/batch-<N>-<runId>.md
+Batch number:   <N>
+Batch label:    <label>
+
+Components to test:
+- <ComponentA>:
+  - <StoryName> → story ID: `<story-id>`
+  - <StoryName> → story ID: `<story-id>`
+- <ComponentB>:
+  - <StoryName> → story ID: `<story-id>`
+```
+
+Spawn with: `subagent_type: "general-purpose"`, `isolation: "worktree"`
+
+### Monitor loop prompt
+
+```
+Read <skillRoot>/monitor-agent.md and follow its instructions exactly.
+
+Progress file:  <progressPath>
+Run ID:         <runId>
+Total batches:  <N>
+Storybook URL:  <storybookUrl>
+Check number:   1
+```
+
+Start with: `Skill("loop", "5m <monitor-prompt>")`
+
+### While waiting
+
+- Monitor is silent when healthy — only alerts on stuck/broken batches.
+- On monitor alert: re-spawn the affected batch if broken, check Chrome MCP if stuck.
+- On "spawn fresh monitor": increment `Check number`, restart the loop.
+- On **context warning/critical** for a batch:
+  1. Read that batch file — note which components already have results vs which don't.
+  2. When the agent finishes (or dies), diff assigned components vs completed ones.
+  3. If any components are untested, spawn a **new audit agent** for just those, using batch number `<N>b` (e.g., `3b`) so it gets its own file without overwriting the partial results.
+  4. Add a row to `progressPath` for the continuation batch.
+
+### After all audit agents complete
+
+1. **Stop the monitor loop.**
+2. Update `progressPath` — mark all batch rows `✅ done`.
+3. Print to user: `✅ All batches done — spawning report agent.`
+
+---
+
+## Phase 3: Spawn Report Agent
+
+```
+Read <skillRoot>/report-agent.md and follow its instructions exactly.
+
+Run ID:          <runId>
+Scope:           <scope>
+Storybook URL:   <storybookUrl>
+Repo root:       <repoRoot>
+Final report:    <finalReportPath>
+```
+
+Wait for it to complete, then tell the user:
 
 ```
 ## Keyboard Audit Complete — <runId>
 
 Tested: N components | N interactions
-✅ Pass: N  ❌ Fail: N  ⚠️ Partial: N
+✅ Pass: N  ❌ Fail: N  ⚠️ Partial: N  ⏭️ Skip: N
+🔴 Critical: N  🟠 Major: N  🟡 Minor: N
 
-Top bugs:
-- <ComponentName>: <short description>
-- ...
-
-Missing stories (need to be created):
-- <ComponentName>: <story name> — <reason>
-
-Full report: keyboard-audit/KEYBOARD_AUDIT_REPORT-<runId>.md
+Final report: keyboard-audit/FINAL-REPORT-<runId>.md
 ```
 
 ---
 
-## Strict Constraints
+## Orchestrator Constraints
 
-- **NEVER fix bugs** — document and move on
-- **NEVER guess Storybook story URLs** — always navigate via sidebar clicks
-- **ALWAYS ask for the Storybook URL** at the start — never assume localhost:5000 or any default
-- **ALWAYS use DOM state** (`activeElement`, `aria-*` attributes) as primary evidence
-- **ALWAYS reload** between stories if component state may be dirty
-- **Sequential only** — complete one component fully before starting the next
-- **Screenshots are a last resort** — only for genuinely ambiguous failures
-- If Chrome MCP becomes unreachable mid-audit, STOP and tell the user before continuing
+- **Never do browser work** — all discovery and testing is delegated to agents
+- **Never paste agent instruction files** — always pass the file path, never the contents
+- **Never assume a Storybook URL** — always ask the user first
+- **Never suggest fixes** — report bugs only
+- **Always use absolute paths** for all file variables
+- **Always spawn audit agents with `isolation: "worktree"`**
+- **Only you write to `progressPath`** — audit agents write only to their own batch files
+- If Chrome MCP becomes unreachable mid-audit: stop, save progress, tell the user
