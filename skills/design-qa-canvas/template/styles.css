@@ -602,8 +602,7 @@ html.noprio .pp,html.noprio .card .lacts .pp,html.noprio .trow h3 .a.pp,html.nop
 .card.sel .shotw::after,.card.sel:hover .shotw::after,.card.sel.hov .shotw::after{box-shadow:inset 0 0 0 calc(.5px * min(1, var(--inv,1))) rgba(143,136,126,.5)}
 .card.showprev .shotw::after{box-shadow:none;--w:calc(2px * min(1, var(--inv,1)));--d:calc(7px * min(1, var(--inv,1)));--g:calc(12px * min(1, var(--inv,1)))}
 /* read dot: no ring on hover, the dot just grows a little */
-.trow h3 .rd:hover,.lacts .rd:hover{box-shadow:none!important}.trow h3 .rd i,.lacts .rd i{transition:transform .12s}.trow h3 .rd:hover i,.lacts .rd:hover i{transform:scale(1.3)}
+.trow h3 .rd i{transition:transform .12s}
 /* read button: a wide pill. In the title row its outline is hairline-thin; on the screenshot it's wider too */
 .trow h3 .rd{width:auto;min-width:1.7em;height:1.15em;padding:0;border-radius:.6em;background:var(--blue-bg);box-shadow:inset 0 0 0 max(.5px,.045em) #B9CCF7!important}.trow h3 .rd i{width:.46em;height:.46em}
 .trow h3 .rd:hover{box-shadow:inset 0 0 0 max(.5px,.045em) var(--blue)!important}.trow h3 .rd:hover i{transform:none}
-.lacts .rd{min-width:34px;border-radius:7px}.lacts .rd:hover i{transform:none}
