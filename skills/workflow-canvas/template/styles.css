@@ -613,3 +613,8 @@ html.noprio .pp,html.noprio .card .lacts .pp,html.noprio .trow h3 .a.pp,html.nop
 .card .addrow{display:block;visibility:hidden;margin-top:calc(100cqw * 8 / var(--zw,1712));padding:calc(100cqw * 6 / var(--zw,1712)) 0;font-size:calc(100cqw * 20 / var(--zw,1712));color:var(--muted);background:none;border:0;cursor:pointer;text-align:left}.card:hover .addrow{visibility:visible}.card .addrow:hover{color:var(--blue)}
 /* title-row read pill: same height as the priority badge */
 .trow h3 .rd{height:calc(1.2em / .7);min-width:1.7em;border-radius:.4em}.trow h3 .rd i{width:.62em;height:.62em}
+/* + Add issue: a row like the issues above it (separator, padding, title size, text aligned) */
+.card .addrow{display:block;width:100%;margin:0;border:0;border-top:1px solid var(--line);border-radius:0;padding:calc(100cqw * 10 / var(--zw,1712)) 6px;font-size:calc(100cqw * 24 / var(--zw,1712));line-height:1.35;font-weight:500;text-align:left;color:var(--muted);background:none;cursor:pointer}
+.card:not(.grp) .addrow{padding-left:0;padding-right:0;margin-top:calc(100cqw * 10 / var(--zw,1712))}
+.card .addrow:hover{color:var(--blue);background:rgba(0,0,0,.03)}
+.card.grp .addrow{padding-left:6.6px}
