@@ -1,0 +1,63 @@
+
+<button class="ib" id="sbopen" title="Show side pane"><svg class="i"><use href="#i-panel-open"/></svg></button>
+<div id="kbpop" hidden></div>
+<aside id="sb">
+ <div class="sb-top">
+  <div class="sb-title"><button class="ib" id="sbcol" title="Hide side pane"><svg class="i"><use href="#i-panel"/></svg></button><b id="ttl">Design QA</b></div>
+  <div id="srv" hidden></div>
+  <div id="wst" hidden></div>
+  <div class="sb-ctrls">
+   <button class="ib" title="General comments" data-open="page"><svg class="i"><use href="#i-msg"/></svg></button>
+   <button class="ib" id="fbtn" data-tip="Filters"><svg class="i"><use href="#i-filter"/></svg><span class="dotn" id="fdot" hidden></span></button>
+   <button class="ib" id="setbtn" data-tip="Settings"><svg class="i"><use href="#i-knobs"/></svg></button>
+   <button class="ib" id="sortbtn" data-tip="Sort by priority"><svg class="i"><use href="#i-sort"/></svg></button>
+  </div>
+ <div id="settings"></div>
+  <div id="filters">
+    <div class="frow"><span class="l">Priority</span><button class="chip" data-fp="high">High</button><button class="chip" data-fp="med">Medium</button><button class="chip" data-fp="low">Low</button></div>
+   </div>
+  <div class="tabs">
+   <button class="tab on" data-tab="issues">Issues <span class="c" id="cI"></span></button>
+   <button class="tab" data-tab="new">New <span class="c" id="cN"></span></button>
+   <button class="tab" data-tab="inbox" data-tip="To-dos: your comments for Claude, and new screenshots"><svg class="i ti" style="width:15px;height:15px"><use href="#i-todo"/></svg><span class="tl">To-dos</span> <span class="c" id="cIn"></span></button>
+   <button class="tab" data-tab="deleted" data-tip="Deleted — waiting for you to confirm"><svg class="i ti" style="width:15px;height:15px"><use href="#i-trash"/></svg><span class="tl">Deleted</span><span class="c" id="cD">0</span></button>
+  </div>
+ </div>
+ <div class="list" id="list"></div>
+ <button id="todoJump" hidden>To do <b>0</b> <span>Jump ↓</span></button>
+</aside>
+<div id="sbrz" title="Drag to resize"></div><div id="pop"></div><div id="lb"><img alt=""></div><div id="toast"></div><div id="srvToast" hidden><b>Server not running</b><span>Your comments are safe in this browser. Ask Claude to start it:</span><code>node server.mjs __PORT__</code><button data-copymsg>Copy message for Claude</button></div><div id="menu" hidden></div>
+<div id="vp"><div id="world"></div></div>
+<div class="tools">
+ <button class="ib" data-z="out" title="Zoom out"><svg class="i"><use href="#i-minus"/></svg></button><span id="zl">100%</span>
+ <button class="ib" data-z="in" title="Zoom in"><svg class="i"><use href="#i-plus"/></svg></button>
+ <button class="ib" data-z="fit" title="Fit"><svg class="i"><use href="#i-max"/></svg></button>
+ <button class="ib" id="appbtn" hidden><svg class="i"><use href="#i-ext"/></svg></button>
+ <button class="ib" id="kbbtn" title="Keyboard shortcuts"><svg class="i"><use href="#i-kb"/></svg></button>
+</div>
+
+<svg width="0" height="0" style="position:absolute"><defs>
+<symbol id="i-filter" viewBox="0 0 24 24"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></symbol>
+<symbol id="i-msg" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></symbol>
+<symbol id="i-more" viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></symbol>
+<symbol id="i-inbox" viewBox="0 0 24 24"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></symbol>
+<symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></symbol>
+<symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol>
+<symbol id="i-send" viewBox="0 0 24 24"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></symbol>
+<symbol id="i-pen" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></symbol><symbol id="i-dot" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/></symbol>
+<symbol id="i-expand" viewBox="0 0 24 24"><path d="M15 3h6v6"/><path d="M9 21H3v-6"/><path d="M21 3l-7 7"/><path d="M3 21l7-7"/></symbol>
+<symbol id="i-todo" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="m8.5 10 2.2 2.2 4.5-4.5"/></symbol><symbol id="i-panel" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/><path d="m16 15-3-3 3-3"/></symbol><symbol id="i-panel-open" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/><path d="m14 9 3 3-3 3"/></symbol>
+<symbol id="i-ext" viewBox="0 0 24 24"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></symbol><symbol id="i-kb" viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/></symbol><symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21"/></symbol>
+<symbol id="i-tasks" viewBox="0 0 24 24"><path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/><path d="M13 6h8"/><path d="M13 12h8"/><path d="M13 18h8"/></symbol>
+<symbol id="i-sort" viewBox="0 0 24 24"><path d="m3 16 4 4 4-4"/><path d="M7 20V4"/><path d="M11 4h10"/><path d="M11 8h7"/><path d="M11 12h4"/></symbol>
+<symbol id="i-knobs" viewBox="0 0 24 24"><path d="M21 4h-7"/><path d="M10 4H3"/><path d="M21 12h-9"/><path d="M8 12H3"/><path d="M21 20h-5"/><path d="M12 20H3"/><path d="M14 2v4"/><path d="M8 10v4"/><path d="M16 18v4"/></symbol>
+<symbol id="i-compare" viewBox="0 0 24 24"><path d="M12 3v18"/><rect x="3" y="5" width="6" height="14" rx="1"/><rect x="15" y="5" width="6" height="14" rx="1"/></symbol>
+<symbol id="i-split" viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="18" rx="1"/><rect x="13" y="3" width="8" height="18" rx="1"/></symbol><symbol id="i-merge" viewBox="0 0 24 24"><path d="M8 6l4 4 4-4"/><path d="M12 10v11"/><path d="M4 3h16"/></symbol>
+<symbol id="i-history" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></symbol>
+<symbol id="i-chev" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+<symbol id="i-plus" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></symbol>
+<symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
+<symbol id="i-max" viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></symbol>
+</defs></svg>
+

@@ -1,0 +1,571 @@
+
+:root{--bg:#F4F4F4;--panel:#fff;--line:#E7E4DE;--ink:#1B1713;--muted:#6F6A63;--faint:#A29C93;--blue:#2F6FEB;--blue-bg:#EEF3FE;--high:#D93A2B;--med:#E08A12;--low:#B8B2A8;--green:#1F8A4C}
+*{box-sizing:border-box}html,body{margin:0;height:100%;font:13px/1.45 -apple-system,BlinkMacSystemFont,"Inter",sans-serif;color:var(--ink);background:var(--bg);overflow:hidden}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;padding:0}
+svg.i{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+/* side pane */
+#sb{position:fixed;inset:0 auto 0 0;width:var(--sbw,320px);background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column;z-index:5}
+.sb-top{padding:14px 14px 0;border-bottom:1px solid var(--line)}
+.sb-title{display:flex;align-items:center;gap:8px}.sb-title b{font-size:14px;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ib{width:28px;height:28px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;color:var(--muted);position:relative}
+.ib:hover,.ib.on{background:#F1EFEB;color:var(--ink)}.ib .dotn{position:absolute;top:3px;right:3px;width:7px;height:7px;border-radius:50%;background:var(--blue)}
+.progress{display:flex;gap:10px;font-size:12px;color:var(--muted);margin:6px 0 10px}.progress b{color:var(--ink);font-weight:600}
+.tabs{display:flex;gap:2px}.tab{padding:8px 10px;color:var(--muted);border-bottom:2px solid transparent;display:flex;gap:6px;align-items:center}
+.tab.on{color:var(--ink);border-color:var(--ink);font-weight:600}.tab .c{font-size:11px;background:#F1EFEB;border-radius:9px;padding:0 6px;color:var(--muted)}
+.tab .c.blue{background:var(--blue);color:#fff}
+#filters{padding:10px 14px;border-bottom:1px solid var(--line);background:#FBFAF8;display:none}#filters.open{display:block}
+.frow{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:4px 0}.frow .l{width:58px;color:var(--muted);font-size:12px}
+.chip{border:1px solid var(--line);border-radius:14px;padding:2px 9px;font-size:12px;background:#fff}.chip.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.list{flex:1;overflow:auto;padding:6px 0 40px}
+.sec{display:flex;align-items:center;gap:6px;padding:10px 14px 4px;font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);font-weight:600;cursor:pointer}
+.sec .n{margin-left:auto;font-weight:500}.sec svg{width:14px;height:14px;transition:transform .15s}.sec.col svg{transform:rotate(-90deg)}
+.row{display:flex;align-items:center;gap:8px;padding:6px 10px 6px 14px;cursor:pointer;position:relative}
+.row:hover{background:#F7F6F3}.row.sel{background:var(--blue-bg)}.row.sel::before{content:"";position:absolute;left:0;top:4px;bottom:4px;width:3px;border-radius:2px;background:var(--blue)}
+.sn{font-variant-numeric:tabular-nums;font-size:12px;color:var(--muted);width:22px;text-align:right;flex:none}
+.pd{width:8px;height:8px;border-radius:50%;flex:none}.p-high{background:var(--high)}.p-med{background:var(--med)}.p-low{background:var(--low)}
+.rt{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.new{font-size:10px;font-weight:700;color:var(--blue);letter-spacing:.03em}
+.ra{display:flex;gap:2px;opacity:0}.row:hover .ra,.row.sel .ra{opacity:1}
+.ra .ib{width:24px;height:24px}
+.cc{display:inline-flex;align-items:center;gap:3px;font-size:11px;color:var(--muted)}.cc svg{width:14px;height:14px}
+.cc.todo{color:var(--blue)}
+.empty{padding:28px 18px;color:var(--muted);text-align:center}.empty svg{width:28px;height:28px;color:var(--faint);margin-bottom:8px}
+/* thread popover */
+#pop{position:fixed;left:calc(var(--sbw,320px) + 8px);width:340px;max-height:70vh;background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:0 12px 32px rgba(0,0,0,.14);z-index:20;display:none;flex-direction:column}
+#pop.open{display:flex}
+.ph{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid var(--line)}.ph b{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pb{overflow:auto;padding:10px 12px;display:flex;flex-direction:column;gap:10px}
+.th{border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.thh{display:flex;align-items:center;gap:8px;padding:6px 8px;background:#FBFAF8;border-bottom:1px solid var(--line)}
+.st{font-size:11px;border-radius:9px;padding:1px 8px;font-weight:600}.st.todo{background:#F1EFEB;color:var(--muted)}.st.inprogress{background:var(--blue-bg);color:var(--blue)}.st.done{background:#E7F5EC;color:var(--green)}
+.res{margin-left:auto;display:inline-flex;align-items:center;gap:4px;font-size:12px;border:1px solid var(--line);border-radius:6px;padding:2px 8px;background:#fff}
+.res:hover{border-color:var(--green);color:var(--green)}.res svg{width:14px;height:14px}
+.msg{padding:6px 10px;font-size:12.5px}.msg .who{font-size:11px;color:var(--muted);font-weight:600;display:block}
+.msg.Claude{background:#FBFAF8}
+.compose{border-top:1px solid var(--line);padding:8px 12px;display:flex;gap:6px;align-items:flex-end}
+.compose textarea{flex:1;resize:none;border:1px solid var(--line);border-radius:6px;padding:6px 8px;font:inherit;min-height:34px}
+.send{width:32px;height:32px;border-radius:6px;background:var(--ink);color:#fff;display:inline-flex;align-items:center;justify-content:center}
+/* canvas */
+#vp{position:fixed;inset:0 0 0 var(--sbw,320px);overflow:hidden;cursor:grab}#vp.drag{cursor:grabbing}
+#world{transform-origin:0 0;position:absolute;left:0;top:0;padding:48px 56px;width:1680px}
+.hdr h1{font-size:26px;margin:0 0 6px;letter-spacing:-.01em}.hdr p{max-width:760px;color:var(--muted);margin:0 0 28px}
+.lane{margin:0 0 40px}.lane h2{font-size:17px;margin:0 0 12px;display:flex;gap:8px;align-items:baseline}.lane h2 span{font-size:12px;color:var(--muted);font-weight:400}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+.card{background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden;display:flex;flex-direction:column}
+.card.sel{outline:2px solid var(--blue);outline-offset:2px}
+.shot{width:100%;aspect-ratio:16/10;object-fit:contain;background:#F1EFEB;display:block;border-bottom:1px solid var(--line)}
+.noshot{aspect-ratio:16/10;display:flex;align-items:center;justify-content:center;color:var(--faint);background:#F7F6F3;border-bottom:1px solid var(--line)}
+.cap{padding:12px 14px 14px;display:flex;flex-direction:column;gap:8px}
+.ct{display:flex;gap:8px;align-items:flex-start}
+.badge{flex:none;min-width:26px;height:22px;border-radius:6px;color:#fff;font-weight:700;font-size:12px;display:inline-flex;align-items:center;justify-content:center;padding:0 6px;font-variant-numeric:tabular-nums}
+.badge.p-low{background:#8E877D}
+.ct h3{margin:1px 0 0;font-size:14px;line-height:1.35;flex:1}
+.ct .ib{width:24px;height:24px;margin-top:-1px}
+.meta{font-size:11.5px;color:var(--muted);display:flex;gap:8px;align-items:center}.meta .hl{display:inline-flex;align-items:center;gap:4px}.meta .hl i{width:6px;height:6px;border-radius:50%;background:var(--ink)}
+.fix{font-size:12.5px}.fix b{font-weight:600}
+details.more summary{font-size:12px;color:var(--muted);cursor:pointer;list-style:none;display:inline-flex;align-items:center;gap:4px}
+details.more summary::-webkit-details-marker{display:none}details.more summary svg{width:14px;height:14px;transition:transform .15s}details.more[open] summary svg{transform:rotate(180deg)}
+details.more .w{font-size:12.5px;color:#3C3731;margin-top:6px}
+.sugg{border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+.sugg .sh{font-size:11px;color:var(--muted);font-weight:600;margin-bottom:4px}
+.sugg li{list-style:none;display:flex;gap:6px;font-size:12px;padding:3px 0}.sugg ul{margin:0;padding:0}
+.acc{flex:none;display:inline-flex;align-items:center;gap:3px;font-size:11.5px;border:1px solid var(--line);border-radius:6px;padding:1px 7px;height:22px;background:#fff}.acc:hover{border-color:var(--green);color:var(--green)}.acc svg{width:13px;height:13px}
+.sugg li{align-items:flex-start;gap:8px;padding:5px 0;border-top:1px solid #F1EFEB}.sugg li:first-child{border-top:0}
+.sg-act{display:flex;gap:6px;margin-top:6px}.sg-act button{font-size:12px;border:1px solid var(--line);border-radius:6px;padding:2px 8px}
+.tools{position:fixed;right:16px;bottom:16px;background:#fff;border:1px solid var(--line);border-radius:10px;display:flex;align-items:center;gap:2px;padding:4px;box-shadow:0 4px 14px rgba(0,0,0,.06);z-index:6}
+.tools span{font-size:12px;width:44px;text-align:center;color:var(--muted)}
+/* only promoted to a GPU layer while moving; at rest the browser re-draws text sharp at the current zoom */
+#world.moving{will-change:transform}
+.shot{cursor:pointer}
+.pp{flex:none;font-size:11px;font-weight:600;border-radius:5px;padding:1px 7px;border:1px solid}
+.pp.high{color:var(--high);border-color:#F3C4BF;background:#FDF1EF}.pp.med{color:#A8650A;border-color:#F2D7AE;background:#FDF6EC}.pp.low{color:var(--muted);border-color:var(--line);background:#F7F6F3}
+.card .pp{cursor:pointer}
+.snb{flex:none;min-width:22px;height:20px;border-radius:5px;background:#F1EFEB;color:var(--muted);font-weight:600;font-size:12px;display:inline-flex;align-items:center;justify-content:center;padding:0 5px;font-variant-numeric:tabular-nums}
+.clamp{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+[data-ed]{border-radius:4px}
+[contenteditable=true]{outline:2px solid var(--blue);background:#fff;-webkit-line-clamp:unset;display:block;cursor:text}
+.ct .ib{width:26px;height:26px;border:1px solid var(--line);border-radius:6px;background:#fff;color:#3C3731}
+.ct .ib:hover{border-color:#CFC9BF;background:#F7F6F3;color:var(--ink)}.ct .ib svg{width:15px;height:15px}
+.ra .ib{border:1px solid var(--line);background:#fff}
+#lb{position:fixed;inset:0;background:rgba(20,18,15,.82);display:none;align-items:center;justify-content:center;z-index:40;cursor:zoom-out}#lb.open{display:flex}#lb img{max-width:94vw;max-height:94vh;border-radius:6px}
+#toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--ink);color:#fff;border-radius:8px;padding:6px 12px;font-size:12px;z-index:30;display:none}
+.mockbar{position:fixed;left:336px;bottom:16px;background:var(--ink);color:#fff;border-radius:10px;padding:6px 10px;font-size:12px;display:flex;gap:10px;align-items:center;z-index:6}
+.mockbar label{display:flex;gap:4px;align-items:center}
+
+/* round 6: no card box, no reserved action space, hover = selection minus the lip */
+.card{background:none;border:0;border-radius:8px;overflow:visible;padding:6px;margin:-6px}
+.card .shot,.card .noshot{border:1px solid var(--line);border-radius:8px}
+.cap{padding:10px 2px 4px}
+.card:hover{background:rgba(47,111,235,.05)}
+.card.sel{outline:2px solid var(--blue);outline-offset:0;background:rgba(47,111,235,.05)}
+.row:hover{background:var(--blue-bg)}
+.ra{position:absolute;right:8px;top:50%;transform:translateY(-50%);display:none;background:var(--blue-bg);padding-left:6px}
+.row:hover .ra,.row.sel .ra{display:flex;opacity:1}
+.row .pp{margin-right:2px}
+
+/* heading fixed; body ≤ 13px, shrinks (to 11px) once it would pass 4 lines, then clamps */
+.ct h3{font-size:15px;line-height:1.35}
+.fit{font-size:13px;line-height:1.45;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+
+/* selection = shadow on the screenshot only; no box, tint or outline on the canvas */
+.card:hover,.card.sel{background:none;outline:0}
+.card .shot,.card .noshot{transition:box-shadow .15s}
+.card:hover .shot,.card:hover .noshot{box-shadow:0 2px 8px rgba(0,0,0,.08)}
+.card.sel .shot,.card.sel .noshot{box-shadow:0 10px 28px rgba(0,0,0,.22);border-color:#CFC9BF}
+
+/* actions on hover only, in flow: the badge slides left to make room */
+.ra{position:static;transform:none;background:none;padding:0;display:none;gap:2px;opacity:1}
+.row:hover .ra{display:flex}.row.sel:not(:hover) .ra{display:none}
+.ct .ib{display:none}.card:hover .ct .ib{display:inline-flex}
+#menu{position:fixed;z-index:30;background:#fff;border:1px solid var(--line);border-radius:8px;box-shadow:0 10px 28px rgba(0,0,0,.14);padding:4px;min-width:190px}
+#menu .mh{font-size:11px;color:var(--muted);padding:4px 8px}
+#menu button{display:flex;align-items:center;gap:8px;width:100%;text-align:left;padding:6px 8px;border-radius:5px}
+#menu button:hover{background:#F1EFEB}#menu button.on{font-weight:600}#menu button.danger{color:var(--high)}
+#menu hr{border:0;border-top:1px solid var(--line);margin:4px 0}
+#menu .pd{width:8px;height:8px}
+
+.shotw{position:relative}
+.exp{position:absolute;top:8px;right:8px;width:28px;height:28px;border-radius:6px;background:rgba(255,255,255,.95);border:1px solid var(--line);display:none;align-items:center;justify-content:center;color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,.1)}
+.card:hover .exp{display:inline-flex}.exp svg{width:15px;height:15px}
+.shot{cursor:pointer}
+.row.hov{background:var(--blue-bg)}
+.card.hov .shot,.card.hov .noshot{box-shadow:0 2px 8px rgba(0,0,0,.08)}
+
+/* card heading: 24px, wraps to as many lines as it needs; body stays smaller (≤13px) */
+.ct h3{font-size:24px;line-height:1.25;letter-spacing:-.01em}
+.ct{align-items:flex-start}.ct .snb{height:30px;min-width:30px;font-size:15px}.ct .pp{margin-top:6px}.ct .ib,.ct .cc{margin-top:3px}
+
+/* canvas: actions keep their space (no shift); panel: row height never changes on hover */
+.ct .ib{display:inline-flex!important;visibility:hidden}.card:hover .ct .ib{visibility:visible}
+.row{min-height:34px;box-sizing:border-box}.ra .ib{width:22px;height:22px}
+
+/* type: section headings bold; card heading medium; body regular and smaller */
+.lane h2{font-weight:700}
+.ct h3{font-weight:500}
+.snb,.pp{font-weight:500}
+.body{overflow:hidden;line-height:1.45;font-weight:400;color:#2B2621;position:relative}
+.body .w{margin-top:6px;color:#3C3731}.body .meta{margin-top:6px;font-size:.8em}
+.body.fade::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1.45em;background:linear-gradient(transparent,var(--bg))}
+.more-btn{font-size:12px;color:var(--muted);display:inline-flex;align-items:center;gap:4px;align-self:flex-start}.more-btn[hidden]{display:none}
+.more-btn svg{width:14px;height:14px}.more-btn.up svg{transform:rotate(180deg)}
+
+.extra{display:none}.body:not(.shut) .extra{display:block}
+.pp{min-width:22px;text-align:center;padding:1px 5px}.pp.high{background:var(--high);color:#fff;border-color:var(--high)}
+.ct .pp{margin-top:4px;height:22px;display:inline-flex;align-items:center;justify-content:center}
+.ct .ib.cm.has{visibility:visible;color:var(--blue);border-color:#C9D8FB;width:auto;padding:0 6px;gap:3px}.ct .ib.cm.has em{font-style:normal;font-size:12px;font-weight:600}
+.card:has(.cm.has) .ct [data-menu]{visibility:visible}
+.nd{flex:none;width:9px;height:9px;border-radius:50%;background:var(--blue);margin-top:10px;padding:0}.row .nd{margin:0}
+#menu.picker{display:flex;gap:4px;padding:4px;min-width:0}#menu.picker button{width:30px;justify-content:center;padding:4px 0}#menu.picker button.on{outline:2px solid var(--ink);outline-offset:1px}
+#pop .pb:empty{display:none}
+
+.ihint{padding:10px 14px;font-size:12px;color:var(--muted)}
+.irow{display:flex;flex-direction:column;gap:6px;padding:10px 14px;border-top:1px solid var(--line);cursor:pointer}.irow:hover{background:var(--blue-bg)}
+.irow img{width:100%;border:1px solid var(--line);border-radius:6px}.irow .it{display:flex;flex-direction:column}.irow .it span{font-size:12px;color:var(--muted)}.irow .lk{color:var(--blue)!important}
+
+/* round 10: smaller type; number + priority sit inline so the title wraps underneath them */
+.ct h3{font-size:15px;line-height:1.35;font-weight:500;letter-spacing:0}
+.ct h3 .snb,.ct h3 .pp{display:inline-flex;vertical-align:1px;height:17px;min-width:17px;font-size:10.5px;margin:0 5px 0 0;padding:0 4px;border-radius:4px}
+.ct .ib,.ct .cc,.ct .nd{margin-top:0}.ct .nd{margin-top:5px}
+.ct .ib{width:22px;height:22px}.ct .ib svg{width:13px;height:13px}
+.more-btn{font-size:11px}.cap{gap:6px}
+
+/* round 11: one tag size for number / priority / comments / unread; all inline, title wraps under them */
+.ct h3{font-size:17px;line-height:1.4}
+.ct h3 .tg{box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;gap:3px;vertical-align:2px;height:19px;min-width:19px;padding:0 5px;margin:0 5px 0 0;border-radius:4px;border:1px solid transparent;font-size:11px;font-weight:500;line-height:1}
+.ct h3 .snb{background:#F1EFEB;color:var(--muted);border-color:#F1EFEB}
+.ct h3 .cmi{background:#fff;border-color:var(--line);color:var(--muted)}.ct h3 .cmi svg{width:11px;height:11px}
+.ct h3 .cmi.has{color:var(--blue);border-color:#C9D8FB;background:var(--blue-bg)}.ct h3 .cmi em{font-style:normal}
+.ct h3 .ndi{border-color:#C9D8FB;background:var(--blue-bg)}.ct h3 .ndi i{width:7px;height:7px;border-radius:50%;background:var(--blue)}
+/* editing: a clear blue box around exactly what is being edited */
+[contenteditable=true]{outline:none!important;box-shadow:0 0 0 2px var(--blue),0 0 0 5px rgba(47,111,235,.18);background:#fff;border-radius:4px;padding:1px 3px;margin:-1px -3px}
+.ttl[contenteditable=true]{display:inline}
+.cap{cursor:pointer}
+
+/* heading reads 12–24px on screen at any zoom: 17px at 100%, never below 12 or above 24 rendered */
+.ct h3{font-size:var(--hfs,17px)}
+
+/* round 12: actions live on the image's bottom-right edge (half on, half off), expand on the bottom-left; hover only */
+.shotw{position:relative}
+.acts{position:absolute;right:10px;bottom:0;transform:translateY(50%);display:flex;gap:4px;opacity:0;transition:opacity .12s;z-index:2}
+.card:hover .acts,.acts:has(.cmi.has){opacity:1}.card:not(:hover) .acts .a:not(.cmi.has){visibility:hidden}
+.acts .a{height:26px;min-width:26px;padding:0 7px;border-radius:7px;background:#fff;border:1px solid var(--line);box-shadow:0 2px 6px rgba(0,0,0,.10);display:inline-flex;align-items:center;justify-content:center;gap:4px;font-size:12px;font-weight:600;color:#3C3731}
+.acts .a svg{width:14px;height:14px}.acts .a:hover{border-color:#CFC9BF}
+.acts .pp.high{background:var(--high);color:#fff;border-color:var(--high)}.acts .pp.med{color:#A8650A;background:#FDF6EC;border-color:#F2D7AE}.acts .pp.low{color:var(--muted)}
+.acts .cmi.has{color:var(--blue);border-color:#C9D8FB;background:var(--blue-bg)}.acts .cmi em{font-style:normal}
+.exp{top:auto!important;right:auto!important;left:10px;bottom:0!important;transform:translateY(50%);width:26px!important;height:26px!important;border-radius:7px!important;box-shadow:0 2px 6px rgba(0,0,0,.10)!important;z-index:2}
+.cap{padding-top:18px}
+.ct h3 .snt{color:var(--muted);font-weight:400;margin-right:6px;font-variant-numeric:tabular-nums}
+.ct h3 .ndi{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--blue);margin:0 6px 2px 0;vertical-align:middle;padding:0}
+
+/* round 13: heading shrinks with zoom but never below that card's body size */
+.ct h3{font-size:max(var(--hfs,17px),var(--bfs,12px))}
+/* actions sit inside the image corners; 22px, never more than 40px on screen */
+.acts{right:8px;bottom:8px;transform:scale(var(--acs,1));transform-origin:100% 100%}
+.acts .a{height:22px;min-width:22px;padding:0 5px;border-radius:6px;font-size:11px}.acts .a svg{width:12px;height:12px}
+.exp{left:8px;bottom:8px!important;transform:scale(var(--acs,1));transform-origin:0 100%;width:22px!important;height:22px!important;border-radius:6px!important}.exp svg{width:12px!important;height:12px!important}
+.cap{padding-top:10px}
+
+/* editing box is a clean rectangle: the whole heading block (or the whole paragraph), never a wrapped inline outline */
+.ttl[contenteditable=true]{box-shadow:none!important;background:none!important;padding:0!important;margin:0!important}
+.ct h3:has([contenteditable=true]){box-shadow:0 0 0 2px var(--blue),0 0 0 5px rgba(47,111,235,.18);background:#fff;border-radius:4px}
+.fix[contenteditable=true],.w[contenteditable=true]{display:block;margin:0!important;padding:0!important;box-shadow:0 0 0 2px var(--blue),0 0 0 5px rgba(47,111,235,.18)}
+
+.iimg{position:relative}.idel{position:absolute;top:6px;right:6px;width:26px;height:26px;border-radius:6px;background:#fff;border:1px solid var(--line);display:none;align-items:center;justify-content:center;color:var(--high)}
+.irow:hover .idel{display:inline-flex}.idel svg{width:14px;height:14px}
+#toast .undo{color:#9BB8FF;font-weight:600;margin-left:8px}
+
+/* side-pane sections: hover shows the clickable boundary; open/close animates */
+.secw{border-radius:8px;margin:2px 6px}
+.sec{border-radius:6px;margin:0;padding:9px 8px 9px 8px;transition:background .12s,color .12s;user-select:none}
+.sec:hover{background:#F1EFEB;color:var(--ink)}.sec:active{background:#E9E6E0}
+.sec svg{transition:transform .22s cubic-bezier(.2,.7,.2,1);transform:rotate(-90deg)}.secw.open>.sec svg{transform:none}
+.secw.open>.sec{color:var(--ink)}
+.secb{display:grid;grid-template-rows:0fr;transition:grid-template-rows .24s cubic-bezier(.2,.7,.2,1),opacity .2s;opacity:0}
+.secw.open>.secb{grid-template-rows:1fr;opacity:1}.secin{overflow:hidden;min-height:0}
+.secw .row{margin:0 -6px}
+
+.lacts{position:absolute;left:8px;bottom:8px;display:flex;gap:4px;z-index:2;transform:scale(var(--acs,1));transform-origin:0 100%}
+.lacts .a{height:22px;min-width:22px;padding:0 5px;border-radius:6px;background:#fff;border:1px solid var(--line);box-shadow:0 2px 6px rgba(0,0,0,.10);display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#3C3731}
+.lacts .a svg{width:12px;height:12px}
+.lacts .pp.high{background:var(--high);color:#fff;border-color:var(--high)}.lacts .pp.med{color:#A8650A;background:#FDF6EC;border-color:#F2D7AE}.lacts .pp.low{color:var(--muted)}
+.lacts .rd{border-color:#C9D8FB;background:var(--blue-bg)}.lacts .rd i{width:7px;height:7px;border-radius:50%;background:var(--blue)}
+.card:not(:hover) .lacts .exp2{visibility:hidden}  /* priority + unread always visible — they read from bird's-eye view */
+
+.sec{text-transform:none;letter-spacing:0;font-size:12.5px;font-weight:600;white-space:nowrap}
+.sec .stt{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis}
+.sec .stt[contenteditable=true],.lane h2 .lt[contenteditable=true]{overflow:visible;text-overflow:clip;box-shadow:0 0 0 2px var(--blue),0 0 0 5px rgba(47,111,235,.18);background:#fff;border-radius:4px;outline:none}
+.lane h2 .lt{font-weight:700}
+
+.tabs{gap:0}.tab{padding:8px 9px}.tab.icon{margin-left:auto;padding:8px 6px}
+.tab .tdot{width:7px;height:7px;border-radius:50%;background:var(--blue)}
+
+/* while editing, the whole blue box is a text field: text cursor everywhere inside it */
+.ct h3:has([contenteditable=true]),.ct h3:has([contenteditable=true]) *,[contenteditable=true],[contenteditable=true] *{cursor:text!important}
+
+/* editing inside the (clipped) body: unclip so the blue box is never cut off */
+.body:has([contenteditable=true]){overflow:visible!important;max-height:none!important}.body:has([contenteditable=true])::after{display:none}
+.secin:has([contenteditable=true]){overflow:visible}
+
+/* image-edge buttons: every one (priority, unread, expand, comments, menu) answers hover — grows a touch, stroke darkens */
+.lacts .a,.acts .a{transition:transform .14s cubic-bezier(.2,.7,.2,1),border-color .14s,box-shadow .14s}
+.lacts .a:hover,.acts .a:hover{transform:scale(1.12);border-color:#9C958A;box-shadow:0 3px 10px rgba(0,0,0,.16)}
+.lacts .pp.high:hover{border-color:#A82518}.lacts .pp.med:hover{border-color:#C98A2E}.lacts .rd:hover,.acts .cmi.has:hover{border-color:var(--blue)}
+.lacts .a:active,.acts .a:active{transform:scale(1.02)}
+
+#sbrz{position:fixed;top:0;bottom:0;left:calc(var(--sbw,320px) - 3px);width:6px;cursor:col-resize;z-index:7}
+#sbrz:hover,#sbrz.on{background:linear-gradient(90deg,transparent 2px,var(--blue) 2px,var(--blue) 4px,transparent 4px)}
+/* inbox: Claude's task list (done on top, then working now, then up next) + screenshots */
+.ig{padding:12px 14px 4px;font-size:11.5px;font-weight:600;color:var(--muted);display:flex;gap:6px;align-items:center}.ig .c{font-weight:500}
+.task{display:flex;flex-direction:column;gap:3px;padding:8px 14px;cursor:pointer;border-radius:6px;margin:0 6px}.task:hover{background:var(--blue-bg)}
+.task .th1{display:flex;gap:6px;align-items:center;font-size:12px;color:var(--muted)}.task .th1 .rt{color:var(--ink);font-weight:500}
+.task .q{font-size:12.5px;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
+.task .a{font-size:12px;color:#4A443D;background:#F3F2EF;border-radius:6px;padding:5px 8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.task .a b{font-weight:600;color:var(--ink)}
+
+/* screenshots keep the column width but their own height (no grey band); corners never under 8px on screen */
+.card .shot{aspect-ratio:auto;height:auto;object-fit:fill;background:none;border-radius:var(--rad,8px)!important}
+.card .noshot{aspect-ratio:auto;height:120px;border-radius:var(--rad,8px)!important}
+/* selected side-pane row: 1px blue left edge (inset, so section clipping can't hide it) */
+.row.sel::before{display:none}.row.sel{box-shadow:inset 1px 0 0 var(--blue)}
+
+.row button.pp{cursor:pointer;transition:transform .12s,border-color .12s}.row button.pp:hover{transform:scale(1.12);border-color:#9C958A}
+.row button.nd{cursor:pointer;border:0;transition:transform .12s}.row button.nd:hover{transform:scale(1.4)}
+
+#menu[hidden]{display:none!important}
+.sugg li{align-items:flex-start}.sugg li input{margin-top:3px}
+.sg-bar{display:flex;gap:6px;align-items:center;margin-top:8px;flex-wrap:wrap}
+.sg-bar button{font-size:11.5px;border:1px solid var(--line);border-radius:6px;padding:2px 8px;background:#fff}
+.sg-bar button:hover{border-color:#9C958A}.sg-bar .pri{background:var(--ink);color:#fff;border-color:var(--ink)}.sg-bar .rej{color:var(--high)}
+.sg-bar .q{font-size:12px;color:var(--ink);flex-basis:100%}
+.sg-bar .sp{flex:1}
+
+.tabs .tab:first-child{padding-left:0}
+.sec .stt{flex:0 1 auto}.sec .n{margin-left:auto}
+.lane h2 .lt{flex:0 0 auto}
+
+/* no text selection / copying outside edit mode (it was what made double-click select words) */
+#world,#sb,#pop .pb .msg{-webkit-user-select:none;user-select:none}
+[contenteditable=true],textarea,input{-webkit-user-select:text;user-select:text}
+
+/* inbox: headings match side-pane section headings; actions float over content (no shift) */
+.ig.sec{cursor:default;padding:12px 14px 6px;margin:0}.ig.sec:hover{background:none}
+.ihint.one{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 14px 8px}
+.task,.irow{position:relative}
+.task .q2{font-size:12.5px;color:#3C3731;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.task .q2 .u{color:var(--ink)}.task .q2 b{font-weight:600;color:var(--ink)}
+.ovr{position:absolute;display:flex;gap:4px;opacity:0;transition:opacity .12s;z-index:2}
+.task:hover .ovr,.irow:hover .ovr{opacity:1}
+.ovr.tr{top:6px;right:6px}.ovr.bl{left:6px;bottom:6px}.ovr.br{right:6px;bottom:6px}
+.task .ovr.tr{top:6px;right:8px}
+.oa{width:26px;height:26px;border-radius:6px;background:#fff;border:1px solid var(--line);box-shadow:0 2px 6px rgba(0,0,0,.10);display:inline-flex;align-items:center;justify-content:center;color:#3C3731;transition:transform .12s,border-color .12s}
+.oa:hover{transform:scale(1.1);border-color:#9C958A}.oa svg{width:14px;height:14px}.oa.ok{color:var(--green)}.oa[data-idel]:hover,.oa[data-tdel]:hover{color:var(--high)}
+.idel{display:none!important}
+
+/* side pane: every row-like thing is edge-to-edge; hover = grey, selected = blue + 1px inner left edge */
+.secw{margin:0;border-radius:0}.secw .row{margin:0}
+.sec{border-radius:0;padding:9px 14px}
+.row,.task,.irow{margin:0;border-radius:0}
+.row:hover,.row.hov,.task:hover,.irow:hover,.sec:hover{background:#F2F2F0}
+.row.sel,.row.sel:hover{background:var(--blue-bg);box-shadow:inset 1px 0 0 var(--blue)}
+.ra{background:none}
+
+/* side-pane priority badge 4px narrower; hit area unchanged */
+.row .pp{min-width:18px;padding:1px 3px;position:relative}.row .pp::after{content:"";position:absolute;inset:-3px -2px}
+
+.row .nd{width:7px;height:7px}  /* 2px smaller unread dot in the side pane */
+
+/* side pane rows: badge's left edge lines up with the section name (number sits in the gutter) */
+.row .sn{width:12px;text-align:right;overflow:visible;white-space:nowrap}
+.secw .row{padding-left:14px}
+
+.iimg .lacts{left:6px;bottom:6px}
+.ovr.br{right:6px;bottom:6px}.task .ovr.br{right:8px;bottom:6px}
+.oa:disabled{opacity:.45;cursor:not-allowed;transform:none!important;border-color:var(--line)!important}
+.task .ovr .res.on,.irow .ovr .res.on{opacity:1}
+.task:has(.res.on) .ovr,.irow:has(.res.on) .ovr{opacity:1}.task:has(.res.on) .ovr .oa:not(.res),.irow:has(.res.on) .ovr .oa:not(.res){opacity:0}
+.task:hover .ovr .oa,.irow:hover .ovr .oa{opacity:1}.task:hover .ovr .oa:disabled,.irow:hover .ovr .oa:disabled{opacity:.45}
+.task .q2{padding-right:70px}
+.ithread{padding:6px 0 0;font-size:12.5px;display:flex;gap:6px;align-items:flex-start;cursor:pointer}.ithread .q2{padding-right:0}
+.acts .del:hover{color:var(--high)}
+.delbar{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--line);font-size:12px;color:var(--muted)}.delbar span{flex:1}
+.chip.danger{color:var(--high);border-color:#F3C4BF}
+
+.srv{margin:8px 0 10px;border-radius:8px;padding:8px 10px;font-size:12px;display:flex;flex-direction:column;gap:4px}
+.srv.warn{background:#FDF1EF;border:1px solid #F3C4BF;color:#7A2219}.srv.warn button{align-self:flex-start;border:1px solid #F3C4BF;background:#fff;border-radius:6px;padding:2px 8px;font-size:12px;color:#7A2219}
+.srv.ok{flex-direction:row;align-items:center;background:#EEF7F1;border:1px solid #CBE7D5;color:#1B5E36}.srv.ok .dot{width:7px;height:7px;border-radius:50%;background:var(--green)}.srv.ok a{margin-left:auto;color:var(--blue);font-weight:600;text-decoration:none}
+#srvToast{position:fixed;right:16px;bottom:64px;width:300px;background:#fff;border:1px solid #F3C4BF;border-radius:10px;box-shadow:0 10px 28px rgba(0,0,0,.14);padding:12px;display:flex;flex-direction:column;gap:6px;font-size:12.5px;z-index:30}
+#srvToast[hidden]{display:none}#srvToast code{background:#F3F2EF;border-radius:5px;padding:3px 6px;font-size:11.5px}#srvToast button{align-self:flex-start;background:var(--ink);color:#fff;border-radius:6px;padding:4px 10px;font-size:12px}
+
+/* inbox v3: everything lines up with the section name (34px); one text size; each message up to 2 lines */
+#list .task,#list .irow{padding:8px 14px 8px 34px}
+.task .th1{gap:6px;font-size:12.5px}.task .th1 .sn{width:auto;text-align:left;color:var(--muted)}.task .th1 .rt{font-weight:500}
+.l2{font-size:12.5px;line-height:1.4;color:#3C3731;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.l2.u{color:var(--ink)}.l2 b{font-weight:600;color:var(--ink)}
+.meta2{color:var(--muted)}.meta2 .lk{color:var(--blue)}
+.irow .it{display:none}.task .l2,.ithread .l2{padding-right:64px}
+.ithread{flex-direction:column;gap:2px}
+
+/* tabs: selection never changes width (no bold), no push-to-end; labels replace icons when the pane is wide enough */
+.tab{font-weight:500}.tab.on{font-weight:500;color:var(--ink)}.tab.icon{margin-left:0}
+.tab[hidden]{display:none}
+#sb{container:sb/inline-size}
+.tab .tl{display:none}
+.tabs.lbl .tab .tl{display:inline}.tabs.lbl .tab .ti{display:none}.tabs{overflow:hidden}
+/* instant tooltips */
+[data-tip]{position:relative}
+[data-tip]:hover::after{content:attr(data-tip);position:absolute;top:calc(100% + 6px);left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;font-size:11.5px;font-weight:500;white-space:nowrap;padding:4px 8px;border-radius:6px;z-index:40;pointer-events:none}
+
+/* inbox v4: content lines up with the chevron; action visibility rules in one place */
+#list .task,#list .irow{padding-left:14px}
+#list .ovr{opacity:1}#list .ovr .oa{opacity:0;transition:opacity .12s}
+#list .task:hover .ovr .oa,#list .irow:hover .ovr .oa{opacity:1}
+#list .task:hover .ovr .oa:disabled,#list .irow:hover .ovr .oa:disabled{opacity:.45}
+#list .ovr .res.on{opacity:1}           /* finished work: Resolve stays visible */
+#list .task .ovr.tr{top:6px;right:8px}
+#list .task .th1{padding-right:64px}
+
+/* selected issue: a darker stroke on the screenshot, barely any shadow */
+.card.sel .shot,.card.sel .noshot{box-shadow:0 2px 6px rgba(0,0,0,.06)!important;border-color:#8F887E!important}
+.card:hover .shot,.card:hover .noshot,.card.hov .shot,.card.hov .noshot{box-shadow:none!important;border-color:#CFC9BF}
+
+
+#todoJump{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);background:var(--ink);color:#fff;border-radius:18px;padding:6px 12px;font-size:12.5px;font-weight:500;display:flex;gap:6px;align-items:center;box-shadow:0 6px 18px rgba(0,0,0,.18);z-index:6}
+#todoJump[hidden]{display:none}#todoJump b{background:rgba(255,255,255,.18);border-radius:9px;padding:0 6px;font-weight:600}#todoJump span{color:#B9CCFF}
+#sb{position:fixed}
+
+.iimg img{display:block}
+.iimg .lacts{left:8px;bottom:8px;transform:none}.iimg .ovr.br{right:8px;bottom:8px}
+.iimg .lacts .a{height:26px;min-width:26px;border-radius:6px;font-size:12px}
+
+.body .w{font-size:calc(1em - 2px)}  /* details text 2px smaller than the line above it */
+
+.sugg .sh{display:flex;align-items:center}.sugg .rjall{margin-left:auto;font-size:11.5px;font-weight:500;color:var(--high);border:1px solid #F3C4BF;border-radius:6px;padding:2px 8px;background:#fff}
+.sg-bar:empty{display:none}
+
+/* empty details: nothing shown, but a quiet "Add details…" target on hover/selection so it can be filled again */
+.body .fix:empty{min-height:0}
+.card:hover .body .fix:empty,.card.sel .body .fix:empty{min-height:1.4em}
+.card:hover .body .fix:empty::before,.card.sel .body .fix:empty::before{content:"Add details…";color:var(--faint)}
+.body .fix[contenteditable=true]:empty::before{content:"";}
+
+/* side pane: a single comment button — count lives inside it */
+.row .cmb{width:auto;min-width:24px;height:24px;padding:0 5px;gap:3px;display:none;border:1px solid var(--line);background:#fff}
+.row:hover .cmb,.row .cmb.has{display:inline-flex}.row .cmb svg{width:14px;height:14px}
+.row .cmb.has{color:var(--muted)}.row .cmb.has.todo{color:var(--blue);border-color:#C9D8FB}.row .cmb em{font-style:normal;font-size:11px;font-weight:600}
+
+/* the heading is always the biggest text on a card: details stay at least 2px smaller than it at every zoom */
+.ct h3{font-size:var(--hfs,17px)!important}
+.body{font-size:11.5px!important}  /* details: one plain size, a touch smaller than before */
+.body .fix{font-size:inherit}
+
+/* comment popover: grows to the window height, then the thread list scrolls (threads never get squashed) */
+#pop{max-height:calc(100vh - 24px)}
+#pop .pb{flex:1 1 auto;min-height:0;overflow:auto}
+#pop .th{flex:none}
+
+#toast.err{background:#B42318;color:#fff}
+
+/* settings popover: a two-way switch ID ↔ No. */
+#menu.settings{min-width:260px;padding:6px}
+#menu .sw{display:flex;align-items:center;gap:10px;width:100%;padding:8px;border-radius:6px}
+#menu .sw:hover{background:#F1EFEB}
+#menu .swl{flex:1;display:flex;flex-direction:column;font-weight:500}#menu .swl small{font-weight:400;color:var(--muted);font-size:11.5px}
+#menu .swt{display:inline-flex;background:#ECEAE6;border-radius:7px;padding:2px;font-size:11.5px;font-weight:600}
+#menu .swt span{padding:3px 8px;border-radius:5px;color:var(--muted)}
+#menu .sw[aria-checked="true"] .swt span:first-child,#menu .sw[aria-checked="false"] .swt span:last-child{background:#fff;color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+
+/* Claude-watcher status line under the pane header */
+.wst{display:flex;align-items:center;gap:8px;margin:0 0 8px;font-size:12px;border-radius:8px}
+.wst[hidden]{display:none}.wst .dot{width:7px;height:7px;border-radius:50%;flex:none}
+.wst.on{color:var(--muted)}.wst.on .dot{background:var(--green)}
+.wst.off{background:#FFF7E8;border:1px solid #F2D7AE;color:#7A4B07;padding:7px 9px;align-items:flex-start}.wst.off .dot{background:#E08A12;margin-top:5px}
+.wst .t{flex:1;display:flex;flex-direction:column}.wst .t small{color:#9A6A1F}
+.wst button{flex:none;font-size:11.5px;border:1px solid #F2D7AE;background:#fff;border-radius:6px;padding:2px 7px;color:#7A4B07}
+
+/* number column grows only when a number needs the room (no overlap with the badge) */
+.row .sn{width:auto;min-width:12px;flex:none}
+/* settings: inline panel, same look as Filters */
+#settings{padding:10px 14px;border-bottom:1px solid var(--line);background:#FBFAF8;display:none}#settings.open{display:block}
+#settings .sw{display:flex;align-items:center;gap:8px}#settings .sw small{color:var(--muted);font-size:11.5px}
+#settings .swt{display:inline-flex;background:#ECEAE6;border-radius:7px;padding:2px;font-size:11.5px;font-weight:600}
+#settings .swt span{padding:3px 8px;border-radius:5px;color:var(--muted)}
+#settings .sw[aria-checked="true"] .swt span:first-child,#settings .sw[aria-checked="false"] .swt span:last-child{background:#fff;color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+#settings .frow .l{width:58px}
+/* Titles: Full = wrap in the side pane */
+#sb.wrapt .row .rt{white-space:normal;overflow:visible;text-overflow:clip}#sb.wrapt .row{align-items:flex-start}#sb.wrapt .row .pp,#sb.wrapt .row .nd{margin-top:2px}
+/* side-pane title editing + bigger hit areas for the small buttons */
+.row .rt.editing{white-space:normal;overflow:visible;box-shadow:0 0 0 2px var(--blue),0 0 0 5px rgba(47,111,235,.18);background:#fff;border-radius:3px;outline:none;cursor:text;-webkit-user-select:text;user-select:text}
+.row button.nd{position:relative}.row button.nd::after{content:"";position:absolute;inset:-7px}
+
+/* side-pane header: title row, then a controls row; Settings/Filters open above the tabs */
+.sb-title{min-height:24px}.sb-title b{white-space:normal;line-height:1.3}
+.sb-ctrls{display:flex;gap:2px;margin:6px 0 4px -6px}
+.sb-top #settings,.sb-top #filters{margin:0 -14px 8px;border-top:1px solid var(--line)}
+/* amber watcher notice: the action sits under the text so the text gets the full width */
+.wst.off{flex-wrap:wrap}.wst.off .t{flex:1 1 calc(100% - 20px)}.wst.off button{margin-left:15px}
+
+/* toasts (incl. Undo) sit bottom-right, above the zoom control */
+#toast{left:auto;right:16px;bottom:64px;transform:none;padding:8px 12px;font-size:12.5px;box-shadow:0 8px 24px rgba(0,0,0,.18);max-width:360px}
+#settings .bgs{display:flex;gap:6px;align-items:center}#settings .bgs button{width:22px;height:22px;border-radius:6px;border:1px solid var(--line)}
+#settings .bgs button.on{outline:2px solid var(--blue);outline-offset:1px}
+
+/* dark canvas: only the canvas area goes dark; text on the canvas flips to light */
+.dark-canvas #vp{color:#EDEAE6}.dark-canvas #vp .lane h2,.dark-canvas #vp .hdr h1{color:#fff}.dark-canvas #vp .body,.dark-canvas #vp .more-btn{color:#CFCAC3}
+.dark-canvas body{background:var(--bg)}
+
+/* ---- flow mode ---- */
+.flow-mode #world{width:max-content;min-width:1680px}
+.lane.flow .fl{position:relative;display:flex;gap:96px;align-items:flex-start;padding:4px 0 8px}
+.lane.flow .fcol{display:flex;flex-direction:column;gap:36px;width:380px;flex:none}
+.lane.flow svg.arrows{position:absolute;left:0;top:0;pointer-events:none;overflow:visible}
+.prevtag{position:absolute;top:8px;left:8px;background:var(--ink);color:#fff;font-size:11px;font-weight:600;border-radius:5px;padding:2px 7px;display:none;z-index:2}
+.card.showprev .prevtag{display:block}.card.showprev .shot{outline:2px dashed #8F887E;outline-offset:-2px}
+.lacts .cmp{color:#3C3731}.card.showprev .lacts .cmp{background:var(--ink);color:#fff;border-color:var(--ink)}
+.tab[hidden],#sortbtn[hidden]{display:none!important}
+
+/* arrow labels: always horizontal, smaller than card text, with a halo so they read over the line */
+.lane.flow svg .elabel{font-size:10.5px;font-weight:500;fill:#5E5850;paint-order:stroke;stroke:var(--bg);stroke-width:4px;stroke-linejoin:round}
+
+/* ---- several issues on one screen: one card, issues listed under the screenshot ---- */
+.card.grp .gcount{position:absolute;top:8px;right:8px;background:rgba(27,23,19,.82);color:#fff;font-size:11px;font-weight:600;border-radius:5px;padding:2px 7px}
+.card.grp .gitems{display:flex;flex-direction:column;gap:2px;padding-top:8px}
+.card.grp .gi{padding:8px 6px;border-radius:6px;display:flex;flex-direction:column;gap:4px}
+.card.grp .gi+.gi{border-top:1px solid var(--line);border-radius:0}
+.card.grp .gi:hover,.card.grp .gi.hov{background:rgba(0,0,0,.03)}.card.grp .gi.sel{background:var(--blue-bg);box-shadow:inset 2px 0 0 var(--blue)}
+.card.grp .gi .ct{display:flex;align-items:flex-start;gap:8px}.card.grp .gi .ct h3{flex:1}
+.gacts{display:flex;gap:4px;flex:none}.gacts .a{height:22px;min-width:22px;padding:0 5px;border-radius:6px;background:#fff;border:1px solid var(--line);display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#3C3731;gap:3px}
+.gacts .a svg{width:12px;height:12px}.gacts .hv{visibility:hidden}.gi:hover .gacts .hv{visibility:visible}
+.gacts .pp.high{background:var(--high);color:#fff;border-color:var(--high)}.gacts .pp.med{color:#A8650A;background:#FDF6EC;border-color:#F2D7AE}.gacts .pp.low{color:var(--muted)}
+.gacts .rd{border-color:#C9D8FB;background:var(--blue-bg)}.gacts .rd i{width:7px;height:7px;border-radius:50%;background:var(--blue)}
+.gacts .cmi.has{color:var(--blue);border-color:#C9D8FB;background:var(--blue-bg)}.gacts .cmi em{font-style:normal}
+#menu [data-comb]{font-size:12.5px}#menu [data-comb] .snt{color:var(--muted);margin-right:4px}
+
+/* ---- card layout v2: sizes follow the screenshot (reference: 24px heading and 12px corners on a 1712px-wide screenshot) ---- */
+.card{container-type:inline-size}
+.card .shot,.card .noshot{border-radius:calc(100cqw * 12 / var(--zw,1712))!important}
+.card .cap{padding:calc(100cqw * 14 / var(--zw,1712)) 0 0;gap:0}
+.card .trow h3,.card.grp .gi .trow h3{font-size:calc(100cqw * 24 / var(--zw,1712))!important;line-height:1.35;font-weight:500;margin:0;display:block}
+.trow h3 .snt{color:var(--muted);font-weight:400;margin-right:.35em}
+.trow h3 .a{display:inline-flex;vertical-align:.12em;align-items:center;justify-content:center;height:1.25em;min-width:1.25em;padding:0 .3em;margin-right:.3em;border-radius:.3em;border:1px solid var(--line);background:#fff;font-size:.72em;font-weight:600;line-height:1}
+.trow h3 .pp.high{background:var(--high);color:#fff;border-color:var(--high)}.trow h3 .pp.med{color:#A8650A;background:#FDF6EC;border-color:#F2D7AE}.trow h3 .pp.low{color:var(--muted)}
+.trow h3 .rd{border-color:#C9D8FB;background:var(--blue-bg)}.trow h3 .rd i{width:.42em;height:.42em;border-radius:50%;background:var(--blue)}
+.trow h3 .dtog{font-size:.72em;color:var(--muted);font-weight:500;margin-left:.4em;display:inline-flex;align-items:center;gap:.2em;vertical-align:.08em}
+.trow h3 .dtog svg{width:1em;height:1em;transition:transform .15s}.trow h3 .dtog.up svg{transform:rotate(180deg)}
+.card .body{font-size:calc(100cqw * 20 / var(--zw,1712))!important;margin-top:.35em;overflow:visible;max-height:none!important}.card .body.shut{display:none}.card .body::after{display:none}
+.card .more-btn,.card .lacts .pp,.card .lacts .rd{display:none!important}
+/* hover-only actions: on the screenshot (single card) or at the right of each issue row (shared card) */
+.card .acts{opacity:1}.card .acts .hv{visibility:hidden}.card:hover .acts .hv{visibility:visible}
+.gi{position:relative}.racts{position:absolute;right:6px;top:8px;display:flex;gap:4px}
+.racts .a{height:22px;min-width:22px;padding:0 5px;border-radius:6px;background:#fff;border:1px solid var(--line);display:inline-flex;align-items:center;justify-content:center;gap:3px;font-size:11px;font-weight:600;color:#3C3731}
+.racts .a svg{width:12px;height:12px}.racts .hv{visibility:hidden}.gi:hover .racts .hv{visibility:visible}.racts .cmi.has{color:var(--blue);border-color:#C9D8FB;background:var(--blue-bg)}.racts .cmi em{font-style:normal}
+.gi .trow{padding-right:84px}
+.card.grp .gi{padding:calc(100cqw * 10 / var(--zw,1712)) 6px}
+
+/* row-level actions (shared card) scale with the heading, like the badges inside it */
+.gi .racts{font-size:calc(100cqw * 24 / var(--zw,1712));top:calc(100cqw * 10 / var(--zw,1712));right:.3em;gap:.25em}
+.gi .racts .a{height:1.25em;min-width:1.25em;padding:0 .3em;border-radius:.3em;font-size:.72em;gap:.15em}
+.gi .racts .a svg{width:.85em;height:.85em}
+.gi .trow{padding-right:4.6em}.gi .trow h3{padding-right:0}
+
+/* Compare sits with the hover actions on the right; stays visible while comparing */
+.card.showprev .acts .cmp{visibility:visible;background:var(--ink);color:#fff;border-color:var(--ink)}
+
+/* heading badges: filled, title-height, on the text baseline; unread = plain dot */
+.trow h3 .a{font-size:.7em;height:calc(1.2em / .7);min-width:calc(1.2em / .7);padding:0 .45em;border:0;border-radius:.4em;vertical-align:baseline;font-weight:600;margin-right:.4em}
+.trow h3 .pp.low{background:#EFECE7;color:#6B655C}.trow h3 .pp.med{background:#FBEBD3;color:#9A5B07}.trow h3 .pp.high{background:var(--high);color:#fff}
+.trow h3 .rd{background:none;border:0;min-width:0;padding:0;width:.8em}.trow h3 .rd i{width:.62em;height:.62em}
+.trow h3 .a:hover{transform:none;box-shadow:inset 0 0 0 1.5px rgba(0,0,0,.18)}
+.trow h3 .dtog{font-size:.62em;vertical-align:baseline;margin-left:.6em}
+
+/* row hover actions + "N issues" label: identical to the screenshot buttons (fixed on-screen size via --acs) */
+.card.grp .gcount{transform:scale(calc(var(--acs,1) * .6));transform-origin:100% 0}
+.gi .racts,.cap.gi1 .racts{font-size:11px;top:calc(100cqw * 10 / var(--zw,1712));right:6px;gap:4px;transform:scale(var(--acs,1));transform-origin:100% 0}
+.gi .racts .a{height:22px;min-width:22px;padding:0 5px;border-radius:6px;font-size:11px;gap:3px;background:#fff;border:1px solid var(--line);box-shadow:0 2px 6px rgba(0,0,0,.10)}
+.gi .racts .a svg{width:12px;height:12px}
+.gi .trow{padding-right:calc(84px * var(--acs,1))}
+
+/* single card: read button on the screenshot too */
+.card .lacts .rd{display:inline-flex!important}
+.card .lacts .pp{display:inline-flex!important}
+/* comment button: blue only when Claude replied last (needs your attention); otherwise plain with the count */
+.acts .cmi.has:not(.ai),.racts .cmi.has:not(.ai){color:#3C3731;border-color:var(--line);background:#fff}
+.card .moved{display:block;margin-top:.3em;font-size:calc(100cqw * 16 / var(--zw,1712));color:var(--blue);background:none;border:0;padding:0;cursor:pointer;text-align:left}.card .moved:hover{text-decoration:underline}
+/* sticky bulk-action bar: no background, so the list shows through */
+.bulk{position:sticky;top:0;z-index:3;display:flex;justify-content:flex-end;gap:6px;padding:6px 12px;margin-bottom:-6px;pointer-events:none}.bulk .chip{pointer-events:auto;box-shadow:0 1px 4px rgba(0,0,0,.10);cursor:pointer}.bulk .chip:hover{border-color:#CFC9BF}
+.cfm{position:fixed;inset:0;z-index:100;background:rgba(27,23,19,.28);display:flex;align-items:center;justify-content:center}.cfm-b{background:#fff;border-radius:12px;padding:18px 18px 14px;max-width:340px;box-shadow:0 12px 40px rgba(0,0,0,.22);font-size:14px}.cfm-b p{margin:0 0 14px;line-height:1.45}.cfm-a{display:flex;justify-content:flex-end;gap:8px}.cfm .chip{padding:5px 12px;font-size:13px;cursor:pointer}.chip.dark{background:var(--ink);color:#fff;border-color:var(--ink)}
+/* each flow's heading in a soft primary blue */
+.flow-mode .lane h2 .lt{color:color-mix(in srgb,var(--blue) 82%,#1B1713)}
+/* send buttons only appear once there is text */
+.compose:has(textarea:placeholder-shown) .send{display:none}
+.endrip{position:absolute;z-index:40;width:0;height:0;pointer-events:none}.endrip::before{content:'';position:absolute;left:calc(var(--d,220px)/-2);top:calc(var(--d,220px)/-2);width:var(--d,220px);height:var(--d,220px);border-radius:50%;border:2px solid rgba(209,52,36,.55);background:radial-gradient(circle,rgba(209,52,36,0) 40%,rgba(209,52,36,.12) 70%,rgba(209,52,36,0) 72%);transform:scale(.2);opacity:0;animation:endrip .8s ease-out forwards}
+@keyframes endrip{0%{transform:scale(.2);opacity:0}15%{opacity:1}60%{opacity:.8}100%{transform:scale(1);opacity:0}}
+/* comment + reply boxes grow with the text, up to 5 lines, then scroll */
+#pop .compose textarea{field-sizing:content;min-height:34px;max-height:calc(5lh + 14px);overflow-y:auto;line-height:1.4}
+.task.rsv .th1{display:flex;align-items:center;gap:6px}.task.rsv .rwhen{margin-left:auto;font-size:11px;color:var(--muted);white-space:nowrap}.task.rsv .l2{opacity:.85}
+/* New tab: comment marker per row, blue when Claude replied last */
+.row .cmb.has.ai{color:var(--blue);border-color:#C9D8FB;background:var(--blue-bg)}.row .cmb{margin-left:auto}
+.subtabs{display:flex;gap:4px;padding:8px 12px 4px;position:sticky;top:0;z-index:4}.subtab{border:1px solid var(--line);background:#fff;border-radius:14px;padding:3px 10px;font-size:12px;color:var(--muted);cursor:pointer;display:inline-flex;gap:5px;align-items:center}.subtab.on{background:var(--ink);color:#fff;border-color:var(--ink)}.subtab .c{font-size:11px;opacity:.8}
+#pop .ph .prv{margin-left:auto;margin-right:6px;font-size:11px;cursor:pointer}#pop .ph .prv.on{background:var(--ink);color:#fff;border-color:var(--ink)}#pop .th.rsv{opacity:.9}
+/* priority hidden */
+html.noprio .pp{display:none!important}
+/* collapsible side pane */
+.sb-title{display:flex;align-items:flex-start;gap:6px}.sb-title #sbcol{flex:0 0 auto;margin:-3px 0 0 -6px;color:var(--muted)}
+#sbopen{display:none;position:fixed;top:10px;left:10px;z-index:30;background:#fff;border:1px solid var(--line);box-shadow:0 2px 8px rgba(0,0,0,.08)}
+html.sbcol #sb{display:none}html.sbcol{--sbw:0px!important}html.sbcol #sbopen{display:inline-flex}
+html.noprio .pp,html.noprio .card .lacts .pp,html.noprio .trow h3 .a.pp,html.noprio .row .pp{display:none!important}
+/* Deleted tab: thumbnail; click opens the screenshot in the lightbox (deleted ones never sit on the canvas) */
+.drow{cursor:zoom-in;gap:8px}.dthumb{width:44px;height:28px;object-fit:cover;object-position:top;border-radius:4px;border:1px solid var(--line);flex:0 0 auto}
+#kbpop{position:fixed;right:16px;bottom:64px;z-index:45;background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.14);padding:10px 14px 12px;width:330px;font-size:13px}#kbpop .kbh{font-weight:600;margin-bottom:6px}#kbpop .kbr{display:flex;gap:10px;align-items:baseline;padding:4px 0}#kbpop kbd{flex:0 0 74px;font:600 12px/1.6 ui-monospace,monospace;background:#F4F2EE;border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:0 6px;text-align:center}#kbpop span{color:#4A443C}
+/* selected issue in a shared card: a straight 2px left stroke (2px on screen at any zoom), no rounded corners */
+.card.grp .gi,.card.grp .gi.sel{border-radius:0}
+.card.grp .gi.sel{box-shadow:inset calc(2px * var(--inv,1)) 0 0 var(--blue)}
+#settings .hexw{display:inline-flex;align-items:center;gap:1px;margin-left:8px;border:1px solid var(--line);border-radius:6px;padding:0 6px;background:#fff;color:var(--muted);font:12px ui-monospace,monospace}#settings .hex{width:62px;border:0;outline:0;padding:3px 0;font:inherit;color:var(--ink);text-transform:uppercase;background:none}#settings .hexw:focus-within{border-color:var(--blue);box-shadow:0 0 0 3px rgba(47,111,235,.15)}
+#settings .seg{display:inline-flex;border:1px solid var(--line);border-radius:7px;overflow:hidden;background:#F4F2EE}#settings .seg button{padding:3px 10px;font-size:12px;border:0;background:none;color:var(--muted);cursor:pointer}#settings .seg button.on{background:#fff;color:var(--ink);font-weight:600;box-shadow:0 1px 2px rgba(0,0,0,.08)}
+#settings .bgs{flex-wrap:nowrap;align-items:center}#settings .hexw{margin-left:6px}#settings .hex{width:54px}
+#kbpop kbd{flex-basis:86px;white-space:nowrap}
+/* Settings: every label sits above its control */
+#settings .frow{flex-direction:column;align-items:flex-start;gap:5px;margin:0 0 12px}#settings .frow .l{width:auto;font-weight:500}
+.wst .wbtns{display:flex;flex-wrap:wrap;gap:6px}
+.tabs .tab{white-space:nowrap}
+/* Before / Design view: the label sits just above the screenshot's top-left edge; the selection border itself turns dashed */
+.card .prevtag{top:auto;bottom:100%;left:0;margin-bottom:calc(6px * var(--inv,1));transform:scale(calc(var(--acs,1) * .7));transform-origin:0 100%;border-radius:5px}
+.card.showprev .shot{outline:none!important;border-style:dashed!important;border-color:#8F887E!important}

@@ -1,0 +1,73 @@
+{
+  "title": "Order journey — flow",
+  "port": 4300,
+  "flows": {
+    "start": "Create an order",
+    "q1": "Work queue"
+  },
+  "steps": [
+    {
+      "id": "start",
+      "title": "Open New order",
+      "note": "Entry point from the worklist.",
+      "img": "shots/s1.jpg"
+    },
+    {
+      "id": "form",
+      "title": "Fill the form",
+      "note": "Item, quantity, delivery date.",
+      "img": "shots/s2.jpg",
+      "prev": {
+        "img": "shots/s3.jpg",
+        "label": "last week"
+      }
+    },
+    {
+      "id": "elig",
+      "title": "Eligibility",
+      "note": "Coverage check.",
+      "img": "shots/s4.jpg"
+    },
+    {
+      "id": "err",
+      "title": "Validation errors",
+      "note": "Banner at the top.",
+      "img": "shots/s5.jpg"
+    },
+    {
+      "id": "q1",
+      "title": "Queue",
+      "note": "Orders waiting.",
+      "img": "shots/s6.jpg"
+    },
+    {
+      "id": "q2",
+      "title": "Open an order",
+      "note": "From the queue.",
+      "img": "shots/s7.jpg"
+    }
+  ],
+  "edges": [
+    [
+      "start",
+      "form",
+      "click New order"
+    ],
+    [
+      "form",
+      "elig",
+      "Save and continue now please"
+    ],
+    [
+      "form",
+      "err",
+      "invalid input"
+    ],
+    [
+      "q1",
+      "q2"
+    ]
+  ],
+  "sections": [],
+  "issues": []
+}

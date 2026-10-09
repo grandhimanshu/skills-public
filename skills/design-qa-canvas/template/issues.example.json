@@ -1,0 +1,41 @@
+{
+  "title": "Checkout flow — design QA",
+  "intro": "What came up reviewing the build against the design. Replace this with one or two sentences about the scope.",
+  "source": "Source: <i>recording or screenshots, date, who was there</i>. State how frames were cut and any attribution caveats.",
+  "port": 4200,
+  "highlight": { "label": "Alex’s points", "chip": "Alex" },
+  "sections": ["Cart", "Payment", "Cross-cutting"],
+  "issues": [
+    {
+      "section": "Cart",
+      "kind": "gap",
+      "title": "Quantity stepper uses a different font",
+      "what": "The stepper renders in Arial while the rest of the page uses the design-system font. Measured: <code>getComputedStyle</code> reports Arial.",
+      "out": "Inherit the design-system font on the stepper buttons.",
+      "img": "shots/cart-stepper.jpg",
+      "ts": "4:12",
+      "voices": "Alex",
+      "highlight": true
+    },
+    {
+      "section": "Payment",
+      "kind": "ctx",
+      "code": "S1",
+      "title": "Card form: error text is orange",
+      "what": "Observation from a screenshot you added; no context yet.",
+      "out": "Needs your pick or reason.",
+      "img": "shots/s01.png",
+      "sugg": [
+        ["S1-a", "Orange on white is 2.75:1 contrast — below 4.5:1."],
+        ["S1-b", "The message is plain text, not an alert component."]
+      ]
+    },
+    {
+      "section": "Cross-cutting",
+      "kind": "ux",
+      "title": "Toasts repeat what is already on screen",
+      "what": "A success toast appears after every save even though the saved item is visible.",
+      "out": "Drop the toast."
+    }
+  ]
+}
