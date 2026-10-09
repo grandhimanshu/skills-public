@@ -599,3 +599,8 @@ html.noprio .pp,html.noprio .card .lacts .pp,html.noprio .trow h3 .a.pp,html.nop
 .card .shotw{transition:box-shadow .15s}.card.sel .shotw,.card.sel .shotw::after{transition:none!important}
 /* selected ring: 0.5px on screen */
 .card.sel .shotw::after,.card.sel:hover .shotw::after,.card.sel.hov .shotw::after{box-shadow:inset 0 0 0 calc(.5px * var(--inv,1)) rgba(143,136,126,.5)}
+/* rings scale down with the card when zoomed out (same as the shadow) */
+.card .shotw::after{box-shadow:inset 0 0 0 calc(1px * min(1, var(--inv,1))) var(--line)}
+.card:hover .shotw::after,.card.hov .shotw::after{box-shadow:inset 0 0 0 calc(1px * min(1, var(--inv,1))) #CFC9BF}
+.card.sel .shotw::after,.card.sel:hover .shotw::after,.card.sel.hov .shotw::after{box-shadow:inset 0 0 0 calc(.5px * min(1, var(--inv,1))) rgba(143,136,126,.5)}
+.card.showprev .shotw::after{box-shadow:none;--w:calc(2px * min(1, var(--inv,1)));--d:calc(7px * min(1, var(--inv,1)));--g:calc(12px * min(1, var(--inv,1)))}
