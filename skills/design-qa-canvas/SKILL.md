@@ -72,7 +72,7 @@ Rules:
   - Scroll pans (vertical-first) and ⌘-scroll or pinch zooms, staying anchored at the cursor; zoom runs up to 800%.
   - Clicking a screenshot zooms to it and expands its details. ← → move between items.
   - **0** zooms to the screenshot nearest the cursor (same as clicking it); **0** again goes back to the whole-canvas view. It keeps toggling.
-  - **Space** marks the selected issue read and moves to the next issue in side-pane order; pressing again quickly switches instantly. When the next issue shares the screenshot, the view stays put and only the highlight moves; otherwise the next screenshot is fitted in view.
+  - **Space** marks the selected issue read and moves to the next issue in side-pane order; pressing again quickly switches instantly. When the next issue shares the screenshot, the zoom stays and that issue moves up right under the screenshot (seen ones go to the bottom); otherwise the next screenshot is fitted in view. Issues sharing a screenshot are listed together in the side pane.
   - **← →** step to the previous / next issue without marking it read (same screenshot rule as Space).
   - **Alt** flips the selected card to its design reference (`ref`). The keyboard button by the zoom controls lists every shortcut.
   - Double-click any text to edit it in place; this saves to `canvas-edits.json`.

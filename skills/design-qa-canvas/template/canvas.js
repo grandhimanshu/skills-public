@@ -69,8 +69,10 @@ function drawArrows(){if(!FLOW)return;document.querySelectorAll('.fl').forEach(f
   const pt=(id,side)=>{const e=document.querySelector(`#c-${id} .shot,#c-${id} .noshot`);if(!e||!fl.contains(e))return null;const r=e.getBoundingClientRect();return {x:((side?r.right:r.left)-o.left)/z,y:((r.top+r.bottom)/2-o.top)/z}};
   sv.innerHTML=(S.E||[]).map(([a,b,l])=>{const p=pt(a,1),q=pt(b,0);if(!p||!q)return '';const L=16,ax=p.x+6,bx=q.x-L,dx=Math.max(24,(bx-ax)/2),mx=(p.x+q.x)/2,my=(p.y+q.y)/2;
     return `<path d="M${p.x} ${p.y} L${ax} ${p.y} C${ax+dx} ${p.y} ${bx-dx} ${q.y} ${bx} ${q.y} L${q.x-1} ${q.y}" fill="none" stroke="#8F887E" stroke-width="1.6" stroke-linecap="round"/><path d="M${q.x-11} ${q.y-4.5} L${q.x-1} ${q.y} L${q.x-11} ${q.y+4.5}" fill="none" stroke="#8F887E" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>`+(l?`<text class="elabel" x="${mx}" y="${my-6}" text-anchor="middle">${esc(l)}</text>`:'')}).join('')})}
+/* issues sharing a screenshot stay together (placed where the first of them ranks), so stepping finishes one screenshot before the next */
+function byScreen(arr){if(FLOW)return arr;const m=new Map();arr.forEach(i=>{const k=i.screen?'s:'+i.screen:'#'+i.cid;(m.get(k)||m.set(k,[]).get(k)).push(i)});return [...m.values()].flat()}
 function ordered(){ // per section, highest priority first; one serial across the canvas
-  let n=0;return S.sections.map(s=>({s,items:S.items.filter(i=>i.section===s&&visible(i)).sort((a,b)=>rk(a)-rk(b)).map(i=>(i.sn=++n,i))})).filter(g=>g.items.length);
+  let n=0;return S.sections.map(s=>({s,items:byScreen(S.items.filter(i=>i.section===s&&visible(i)).sort((a,b)=>rk(a)-rk(b))).map(i=>(i.sn=++n,i))})).filter(g=>g.items.length);
 }
 function ccBadge(t){const th=threads(t);if(!th.length)return'';const todo=th.some(c=>st(c)!=='done');return `<span class="cc ${todo?'todo':''}">${ic('msg')}${th.length}</span>`}
 function render(){
@@ -167,7 +169,7 @@ function issueRow(i){return `<div class="trow"><h3><span class="snt">${num(i)}</
     ${i.sugg.length?`<div class="sugg"><div class="sh">Claude’s suggestions · ${i.sugg.length}<button class="rjall" data-sgtop="${i.cid}">Reject all</button></div><ul>${i.sugg.map((s,k)=>`<li><input type="checkbox" data-sg="${i.cid}:${k}" aria-label="Select suggestion"><span style="flex:1">${s.replace(/^<b>[^<]*<\/b>\s*/,'')}</span></li>`).join('')}</ul><div class="sg-bar" data-sgbar="${i.cid}"></div></div>`:''}`}
 function shotBox(f,acts,one){return `<div class="shotw">${f.img?`<img class="shot" src="${esc(f.img)}" draggable="false" decoding="async">`:'<div class="noshot">No screenshot</div>'}<div class="lacts">${one?`<button class="a pp ${pr(f)}" data-prio="${f.cid}" title="${PL[pr(f)]} priority — click to change">${PS[pr(f)]}</button>`:''}${one&&unread(f)?`<button class="a rd" data-read="${f.cid}" title="Unread — click to mark read"><i></i></button>`:''}${f.img?`<button class="a exp2" data-exp="${esc(f.img)}" title="Open full size">${ic('expand')}</button>`:''}</div>${f.prev?`<span class="prevtag">${f.prev.ref?'Design':'Before'}${f.prev.label&&!/^before$/i.test(f.prev.label)?' · '+esc(f.prev.label):''}</span>`:''}${acts||''}</div>`}
 function cardGroup(g){const f=g[0];return `<div class="card grp ${g.some(i=>S.sel===i.cid)?'sel':''}" data-cid="${f.cid}">${shotBox(f,'')}
-  <div class="gitems">${g.map(i=>`<div class="gi ${S.sel===i.cid?'sel':''}" id="c-${i.cid}" data-cid="${i.cid}">${issueRow(i)}${hoverActs(i,'racts')}</div>`).join('')}</div></div>`}
+  <div class="gitems">${(k=>k>0?[...g.slice(k),...g.slice(0,k)]:g)(S.rotSel&&S.rotSel===S.sel?g.findIndex(i=>i.cid===S.sel):-1).map(i=>`<div class="gi ${S.sel===i.cid?'sel':''}" id="c-${i.cid}" data-cid="${i.cid}">${issueRow(i)}${hoverActs(i,'racts')}</div>`).join('')}</div></div>`}
 function units(items){const m=new Map(),out=[];items.forEach(i=>{const k=i.screen;if(k){if(!m.has(k)){m.set(k,[]);out.push(m.get(k))}m.get(k).push(i)}else out.push([i])});
   const chunks=[];out.forEach(u=>{for(let k=0;k<u.length;k+=MAXG)chunks.push(u.slice(k,k+MAXG))});return chunks.map(u=>u.length>1?cardGroup(u):card(u[0])).join('')}
 function card(i){return `<div class="card ${S.sel===i.cid?'sel':''}" id="c-${i.cid}" data-cid="${i.cid}">${shotBox(i,hoverActs(i,'acts'),1)}<div class="cap">${issueRow(i)}</div></div>`}
@@ -251,6 +253,7 @@ const wpos=el=>{const r=el.getBoundingClientRect(),w=W().getBoundingClientRect()
 /* measure after this frame's fitAll() has resized cards, or the view lands off the screenshot */
 function goTo(cid,zoomIn){const ins=S.instant;requestAnimationFrame(()=>{const o=S.instant;S.instant=ins;goTo0(cid,zoomIn);S.instant=o})}
 function goTo0(cid,zoomIn){const el=document.getElementById('c-'+cid);if(!el)return;const ep=wpos(el);
+  if(zoomIn==='card'){const cd=el.closest('.card')||el,cp=wpos(cd),z=Math.min(4,(VP.clientWidth-64)/cp.w,(VP.clientHeight-48)/cp.h);return animTo(VP.clientWidth/2-(cp.x+cp.w/2)*z,24-cp.y*z,z)}
   if(zoomIn){const sh=el.querySelector('.shot,.noshot')||el.closest('.grp')?.querySelector('.shot,.noshot'),sp=wpos(sh),sx=sp.x,sy=sp.y;
     const z=Math.min(4,(VP.clientWidth-64)/sp.w,(VP.clientHeight-140)/sp.h); // image fills the view, title peeks below
     return animTo(VP.clientWidth/2-(sx+sp.w/2)*z,32-sy*z,z)}
@@ -402,7 +405,12 @@ function confirmBox(msg,yes,fn){const m=document.createElement('div');m.classNam
 /* Space: mark the selected card read, then go to the next one (workflow: same as →; QA: next issue in side-pane order) */
 function rapidKey(){const now=performance.now();S.instant=now-(S.lastKey||0)<700;S.lastKey=now;setTimeout(()=>S.instant=false)}
 /* QA: stepping to an issue on the same screenshot only moves the highlight, so the screenshot stays in view; another screenshot: fit it */
-function stepTo(from,to){const card=c=>document.getElementById('c-'+c)?.closest('.card'),same=from&&card(from)&&card(from)===card(to);select(to);if(!same)goTo(to,true);requestAnimationFrame(()=>document.querySelector(`#list .row[data-cid="${to}"]`)?.scrollIntoView({block:'nearest'}))}
+/* keyboard stepping in a shared card: the current issue sits right under the screenshot, the ones already seen move to the bottom */
+function rotGrp(cid){const gi=document.getElementById('c-'+cid);if(!gi||!gi.classList.contains('gi'))return;const box=gi.parentElement;let n=0;while(box.firstElementChild!==gi&&n++<9)box.appendChild(box.firstElementChild)}
+function stepTo(from,to){const card=c=>document.getElementById('c-'+c)?.closest('.card'),cd=card(to),same=from&&card(from)&&card(from)===cd;
+  /* same screenshot already in view: keep the zoom, rotate the issue up under it; otherwise fit the next screenshot */
+  const inView=el=>{if(!el)return false;const r=el.getBoundingClientRect(),v=VP.getBoundingClientRect();return r.top>=v.top-2&&r.bottom<=v.bottom+2&&r.left>=v.left-2&&r.right<=v.right+2&&(r.width>=v.width*.6||r.height>=v.height*.6)};/* …and big enough to read */
+  S.rotSel=to;select(to);rotGrp(to);if(!(same&&inView(cd?.querySelector('.shot,.noshot'))))goTo(to,true);requestAnimationFrame(()=>document.querySelector(`#list .row[data-cid="${to}"]`)?.scrollIntoView({block:'nearest'}))}
 function spaceKey(){const cur=S.sel,it=cur&&S.items.find(i=>i.cid===cur);if(S.tab==='new'){rapidKey();/* on the New tab, Space walks the New list: mark read, go to the next changed screen */const R0=[...document.querySelectorAll('#list .row[data-cid]')].map(r=>r.dataset.cid),ri=R0.indexOf(cur);if(it&&unread(it)){setRead(it,true);render()}const R=[...document.querySelectorAll('#list .row[data-cid]')].map(r=>r.dataset.cid),nx=ri<0?R[0]:(R[ri]===cur?R[ri+1]:R[ri])||R[ri-1];if(nx)stepTo(cur,nx);return}if(it&&unread(it)){setRead(it,true);render()}
   if(typeof flowKey==='function'&&FLOW){flowKey('ArrowRight');return}
   rapidKey();const o=ordered().flatMap(g=>g.items).map(i=>i.cid),j=o.indexOf(cur),nx=o[j<0?0:j+1];if(nx)stepTo(cur,nx)}

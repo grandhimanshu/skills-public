@@ -566,3 +566,17 @@ html.noprio .pp,html.noprio .card .lacts .pp,html.noprio .trow h3 .a.pp,html.nop
 /* Before / Design view: the label sits just above the screenshot's top-left edge; the selection border itself turns dashed */
 .card .prevtag{top:auto;bottom:100%;left:0;margin-bottom:calc(6px * var(--inv,1));transform:scale(calc(var(--acs,1) * .7));transform-origin:0 100%;border-radius:5px}
 .card.showprev .shot{outline:none!important;border-style:dashed!important;border-color:#8F887E!important}
+/* screenshot border / selection ring: 1px on screen at any zoom; the dashed Before/Design view is 2px */
+.card .shot,.card .noshot{border-width:calc(1px * var(--inv,1))!important}.card.showprev .shot{border-width:calc(2px * var(--inv,1))!important}
+/* ring drawn as an overlay (borders cannot go below 1 device px, so they thicken with zoom): 1px on screen; Before/Design = 2px dashes */
+.card .shot,.card .noshot{border:0!important;box-shadow:none!important}.card .shotw{position:relative}
+.card .shotw::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:1;border-radius:calc(100cqw * 12 / var(--zw,1712));box-shadow:inset 0 0 0 calc(1px * var(--inv,1)) var(--line)}
+.card:hover .shotw::after,.card.hov .shotw::after{box-shadow:inset 0 0 0 calc(1px * var(--inv,1)) #CFC9BF}
+.card.sel .shotw::after{box-shadow:inset 0 0 0 calc(1px * var(--inv,1)) #8F887E}
+.card.showprev .shotw::after{box-shadow:none;--w:calc(2px * var(--inv,1));--d:calc(7px * var(--inv,1));--g:calc(12px * var(--inv,1));background:repeating-linear-gradient(90deg,#8F887E 0 var(--d),transparent var(--d) var(--g)) top/100% var(--w) no-repeat,repeating-linear-gradient(90deg,#8F887E 0 var(--d),transparent var(--d) var(--g)) bottom/100% var(--w) no-repeat,repeating-linear-gradient(0deg,#8F887E 0 var(--d),transparent var(--d) var(--g)) left/var(--w) 100% no-repeat,repeating-linear-gradient(0deg,#8F887E 0 var(--d),transparent var(--d) var(--g)) right/var(--w) 100% no-repeat}
+/* hover: lighter stroke + faint lift; selected: 50% stroke + paper-like shadow (screen-constant via --inv) */
+.card .shotw{border-radius:calc(100cqw * 12 / var(--zw,1712));transition:box-shadow .15s}
+.card:hover .shotw::after,.card.hov .shotw::after{box-shadow:inset 0 0 0 calc(1px * var(--inv,1)) #CFC9BF}
+.card:hover .shotw,.card.hov .shotw{box-shadow:0 calc(1px * var(--inv,1)) calc(3px * var(--inv,1)) rgba(40,30,20,.06),0 calc(4px * var(--inv,1)) calc(12px * var(--inv,1)) rgba(40,30,20,.05)}
+.card.sel .shotw::after{box-shadow:inset 0 0 0 calc(1px * var(--inv,1)) rgba(143,136,126,.5)}
+.card.sel .shotw{box-shadow:0 calc(1px * var(--inv,1)) calc(2px * var(--inv,1)) rgba(40,30,20,.08),0 calc(6px * var(--inv,1)) calc(16px * var(--inv,1)) rgba(40,30,20,.08),0 calc(18px * var(--inv,1)) calc(40px * var(--inv,1)) rgba(40,30,20,.06)}
