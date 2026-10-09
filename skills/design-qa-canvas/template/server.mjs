@@ -17,7 +17,8 @@ const INBOX = path.join(ROOT, 'canvas-inbox.json')                    // screens
 const DESKTOP = process.env.DESKTOP_DIR || path.join(os.homedir(), 'Desktop')
 const WATCH_DESKTOP = process.env.DESKTOP_WATCH !== '0'
 const PAGE = process.env.CANVAS_PAGE || 'canvas.html'
-const EDITS = path.join(ROOT, 'canvas-edits.json')                   // { [cardId]: { title, what, out } } — the user's edits; build.py/gen.py re-apply them on rebuild
+const EDITS = path.join(ROOT, 'canvas-edits.json')
+const ADDED = path.join(ROOT, 'canvas-added.json')                   // { items: [issue] } — issues the user added by hand on a screenshot (QA)                   // { [cardId]: { title, what, out } } — the user's edits; build.py/gen.py re-apply them on rebuild
 const REMOVED = path.join(ROOT, 'canvas-removed.json')               // { [cardId]: { title, n } } — issues the user removed; hidden, never deleted, restorable
 const PORT = Number(process.argv[2] || process.env.PORT || 4200)
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.mjs': 'text/javascript', '.json': 'application/json',
@@ -146,6 +147,14 @@ const server = http.createServer(async (req, res) => {
     return send(res, 200, { ok: true })
   }
   if (p === '/api/edit' && req.method === 'GET') return send(res, 200, readJson(EDITS, {}))
+  if (p === '/api/added' && req.method === 'GET') return send(res, 200, readJson(ADDED, { items: [] }))
+  if (p === '/api/added' && req.method === 'POST') {
+    if (req.headers['x-actor'] !== 'User') return send(res, 403, { error: 'only the user adds issues by hand' })
+    const b = await readBody(req), d = readJson(ADDED, { items: [] })
+    if (!b.section || !b.title) return send(res, 400, { error: 'section and title required' })
+    const it = { cid: 'U' + (d.items.length + 1), n: Number(b.n) || 0, section: String(b.section), kind: 'gap', title: String(b.title), what: '', out: '', img: b.img || null, screen: String(b.screen || ''), v: b.v || '', sugg: [], by: 'User', at: now() }
+    d.items.push(it); fs.writeFileSync(ADDED, JSON.stringify(d, null, 2)); return send(res, 200, it)
+  }
 
   // Suggestions: the user accepts (locks) or removes Claude's suggestions. Deterministic — no model involved.
   if (p === '/api/suggestions' && req.method === 'GET') return send(res, 200, readJson(SUGG, {}))
