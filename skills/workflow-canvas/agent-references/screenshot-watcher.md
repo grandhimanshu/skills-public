@@ -11,3 +11,5 @@ Tools: this skill's `scripts/` (`watch-inbox.py`, `comments.sh`).
    - Reply and mark done on its comment thread, if any (see `comment-watcher.md`).
 3. **More than 2 waiting:** coordinate subagents, one per screenshot. They draft issue JSON; you are the single writer of `issues.json`.
 4. Never ask the user to put screenshots anywhere else. Never delete a screenshot file.
+
+Which canvas gets a screenshot: only the canvas the user used last (focus or click; recorded in `~/.claude/design-qa-active.json`) moves new Desktop screenshots into its To-dos. Until a canvas has been used, screenshots stay on the Desktop. Other running canvases leave them alone.

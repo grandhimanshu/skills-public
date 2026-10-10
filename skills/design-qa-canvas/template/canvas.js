@@ -485,3 +485,7 @@ S.anim=localStorage.qaAnim||'auto';   // screen switch: auto (slide; quick repea
   b.addEventListener('click',async()=>{const w=window.open('about:blank','_blank');let up=false;
     if(A.url){try{const c=new AbortController();setTimeout(()=>c.abort(),1500);await fetch(A.url,{mode:'no-cors',signal:c.signal});up=true}catch{}}
     const to=up?A.url:repoUrl();if(to){w.location=to;if(!up&&A.url)toast('The app isn’t running — opened the repo instead')}else{w.close();toast('The app isn’t running, and no repo is set')}})}}
+
+/* ---- this canvas claims new Desktop screenshots while it's the one you use (focus / click; refreshed at most every 10 s) */
+{let last=0;const claim=()=>{if(document.visibilityState!=='visible'||S.offline)return;const t=Date.now();if(t-last<10000)return;last=t;fetch(API+'api/active',{method:'POST'}).catch(()=>{})};
+  claim();addEventListener('focus',claim);document.addEventListener('visibilitychange',claim);document.addEventListener('pointerdown',claim,true)}

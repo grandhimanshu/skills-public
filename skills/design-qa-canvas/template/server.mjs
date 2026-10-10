@@ -15,6 +15,8 @@ const STATE = path.join(ROOT, 'canvas-state.json')               // { seen: [car
 const SUGG = path.join(ROOT, 'canvas-suggestions.json')               // { [suggestionId]: 'accepted' | 'removed' } — pending when absent
 const INBOX = path.join(ROOT, 'canvas-inbox.json')                    // screenshots picked up from the Desktop, waiting for Claude to add context
 const DESKTOP = process.env.DESKTOP_DIR || path.join(os.homedir(), 'Desktop')
+// Several canvases may run at once: only the one the user used last takes new Desktop screenshots (shared across servers)
+const ACTIVE = path.join(os.homedir(), '.claude', 'design-qa-active.json')
 const WATCH_DESKTOP = process.env.DESKTOP_WATCH !== '0'
 const PAGE = process.env.CANVAS_PAGE || 'canvas.html'
 const EDITS = path.join(ROOT, 'canvas-edits.json')
@@ -168,6 +170,8 @@ const server = http.createServer(async (req, res) => {
   }
 
   // Screenshot inbox: new Desktop screenshots land here instantly; Claude later adds context and marks them processed.
+  if (p === '/api/active' && req.method === 'POST') { try { fs.mkdirSync(path.dirname(ACTIVE), { recursive: true }); fs.writeFileSync(ACTIVE, JSON.stringify({ port: PORT, root: ROOT, at: now() })) } catch {} return send(res, 200, { ok: true }) }
+  if (p === '/api/active' && req.method === 'GET') return send(res, 200, { ...readJson(ACTIVE, {}), me: PORT })
   if (p === '/api/inbox' && req.method === 'GET') return send(res, 200, readJson(INBOX, { items: [] }))
   const ib = p.match(/^\/api\/inbox\/([^/]+)$/)
   if (ib && req.method === 'POST') {
@@ -247,6 +251,7 @@ const server = http.createServer(async (req, res) => {
 // --- Desktop watcher: moves screenshots taken AFTER the server started into screenshots/inbox/ -------------------------------
 const started = Date.now() - 2000
 if (WATCH_DESKTOP) setInterval(() => {
+  const act = readJson(ACTIVE, null); if (!act || Number(act.port) !== Number(PORT)) return   // not the canvas in use (or none claimed yet): leave it on the Desktop
   let names = []; try { names = fs.readdirSync(DESKTOP) } catch { return }
   for (const n of names) {
     if (!/^(Screenshot|Screen Shot).*\.png$/.test(n)) continue
