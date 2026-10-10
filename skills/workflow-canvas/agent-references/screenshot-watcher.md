@@ -12,4 +12,7 @@ Tools: this skill's `scripts/` (`watch-inbox.py`, `comments.sh`).
 3. **More than 2 waiting:** coordinate subagents, one per screenshot. They draft issue JSON; you are the single writer of `issues.json`.
 4. Never ask the user to put screenshots anywhere else. Never delete a screenshot file.
 
-Which canvas gets a screenshot: only the canvas the user used last (focus or click; recorded in `~/.claude/design-qa-active.json`) moves new Desktop screenshots into its To-dos. Until a canvas has been used, screenshots stay on the Desktop. Other running canvases leave them alone.
+## Which canvas gets a screenshot
+- Only the canvas the user used last (focus or click; `~/.claude/design-qa-active.json`) takes new Desktop screenshots. Until a canvas is used, they stay on the Desktop.
+- **Check scope first.** Before turning a screenshot into an issue or step, check that it belongs to this canvas: the same app or URL, and the same flow or area this canvas covers. If it clearly doesn't, or you're not sure, don't file it: `comments.sh return <INid>`. That puts it back on the Desktop under its original name, and the other running canvases may take it; the canvases that returned it never take it again. Only file it when you're sure it's in scope.
+

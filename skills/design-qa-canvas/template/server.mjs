@@ -17,6 +17,8 @@ const INBOX = path.join(ROOT, 'canvas-inbox.json')                    // screens
 const DESKTOP = process.env.DESKTOP_DIR || path.join(os.homedir(), 'Desktop')
 // Several canvases may run at once: only the one the user used last takes new Desktop screenshots (shared across servers)
 const ACTIVE = path.join(os.homedir(), '.claude', 'design-qa-active.json')
+// Screenshots a canvas's watcher found out of scope go back to the Desktop; listed here so the other canvases may take them (never the ones that returned them)
+const RETURNED = path.join(os.homedir(), '.claude', 'design-qa-returned.json')
 const WATCH_DESKTOP = process.env.DESKTOP_WATCH !== '0'
 const PAGE = process.env.CANVAS_PAGE || 'canvas.html'
 const EDITS = path.join(ROOT, 'canvas-edits.json')
@@ -172,6 +174,17 @@ const server = http.createServer(async (req, res) => {
   // Screenshot inbox: new Desktop screenshots land here instantly; Claude later adds context and marks them processed.
   if (p === '/api/active' && req.method === 'POST') { try { fs.mkdirSync(path.dirname(ACTIVE), { recursive: true }); fs.writeFileSync(ACTIVE, JSON.stringify({ port: PORT, root: ROOT, at: now() })) } catch {} return send(res, 200, { ok: true }) }
   if (p === '/api/active' && req.method === 'GET') return send(res, 200, { ...readJson(ACTIVE, {}), me: PORT })
+  // Out of scope for this canvas: put it back on the Desktop under its original name (Claude may do this)
+  const rt = p.match(/^\/api\/inbox\/([^/]+)\/return$/)
+  if (rt && req.method === 'POST') {
+    const d = readJson(INBOX, { items: [] }), it = d.items.find((x) => x.id === rt[1])
+    if (!it || it.processed) return send(res, 404, { error: 'no waiting screenshot ' + rt[1] })
+    const name = it.orig || path.basename(it.file), to = path.join(DESKTOP, name)
+    try { fs.renameSync(path.join(ROOT, it.file), to) } catch (e) { return send(res, 500, { error: 'could not move it back: ' + e.message }) }
+    const r = readJson(RETURNED, {}); r[name] = { by: [...new Set([...(r[name]?.by || []), PORT])], at: now() }
+    try { fs.mkdirSync(path.dirname(RETURNED), { recursive: true }); fs.writeFileSync(RETURNED, JSON.stringify(r, null, 2)) } catch {}
+    d.items = d.items.filter((x) => x.id !== it.id); fs.writeFileSync(INBOX, JSON.stringify(d, null, 2)); return send(res, 200, { ok: true, returned: name })
+  }
   if (p === '/api/inbox' && req.method === 'GET') return send(res, 200, readJson(INBOX, { items: [] }))
   const ib = p.match(/^\/api\/inbox\/([^/]+)$/)
   if (ib && req.method === 'POST') {
@@ -251,19 +264,22 @@ const server = http.createServer(async (req, res) => {
 // --- Desktop watcher: moves screenshots taken AFTER the server started into screenshots/inbox/ -------------------------------
 const started = Date.now() - 2000
 if (WATCH_DESKTOP) setInterval(() => {
-  const act = readJson(ACTIVE, null); if (!act || Number(act.port) !== Number(PORT)) return   // not the canvas in use (or none claimed yet): leave it on the Desktop
+  const act = readJson(ACTIVE, null), mine = act && Number(act.port) === Number(PORT), ret = readJson(RETURNED, {})
   let names = []; try { names = fs.readdirSync(DESKTOP) } catch { return }
   for (const n of names) {
     if (!/^(Screenshot|Screen Shot).*\.png$/.test(n)) continue
     const from = path.join(DESKTOP, n); let st; try { st = fs.statSync(from) } catch { continue }
-    if (st.mtimeMs < started || Date.now() - st.mtimeMs < 700) continue          // ignore old files; let the write finish
+    const back = ret[n]
+    if (back) { if ((back.by || []).map(Number).includes(Number(PORT))) continue }          // returned by another canvas: any canvas that hasn't turned it down may take it
+    else { if (!mine) continue                                                              // new screenshots: only the canvas in use (none claimed yet = stay on the Desktop)
+      if (st.mtimeMs < started || Date.now() - st.mtimeMs < 700) continue }       // ignore old files; let the write finish
     const d = readJson(INBOX, { items: [] })
     const k = d.items.reduce((m, x) => Math.max(m, Number(String(x.id).slice(2)) || 0), 0) + 1
     const dir = path.join(ROOT, 'screenshots', 'inbox'); fs.mkdirSync(dir, { recursive: true })
     const stamp = new Date(st.mtimeMs).toISOString().replace(/[-:T]/g, '').slice(0, 14)
     const file = `IN${k}-${stamp}.png`
     try { fs.renameSync(from, path.join(dir, file)) } catch { try { fs.copyFileSync(from, path.join(dir, file)); fs.unlinkSync(from) } catch { continue } }
-    d.items.push({ id: 'IN' + k, file: 'screenshots/inbox/' + file, at: new Date().toISOString(), processed: false })
+    d.items.push({ id: 'IN' + k, file: 'screenshots/inbox/' + file, orig: n, at: new Date().toISOString(), processed: false })
     fs.writeFileSync(INBOX, JSON.stringify(d, null, 2)); console.log('inbox +', 'IN' + k, n)
   }
 }, 2500)

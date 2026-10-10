@@ -8,6 +8,7 @@
 #   comments.sh seen   <cardId> <img>       mark this exact screenshot read (run in the canvas folder; key = id@sha1(img)[:8], as build.py does)
 #   comments.sh new    <cardId> 1|0          1 = bring back the NEW mark, 0 = clear it
 #   comments.sh inbox                        screenshots waiting for context (picked up from the Desktop by the server)
+#   comments.sh return <INid>              screenshot isn't in this canvas's scope: put it back on the Desktop for the other canvases
 #   comments.sh inbox-done <INid> <code>     mark an inbox screenshot as added (code = the S<n> issue you created)
 #   comments.sh move   <id> <cardId> "note"  move a thread to the step/issue it is now about (note says why; shown in the thread)
 #   comments.sh remove <cardId> "title"     soft-delete an issue: it moves to the Deleted tab until the user confirms (Restore / Delete all)
@@ -39,6 +40,7 @@ PY
   inbox) curl -s "$B/api/inbox" | python3 -c "import sys,json
 for i in json.load(sys.stdin)['items']:
     print(i['id'], 'added as '+i.get('issue','?') if i.get('processed') else 'WAITING', i['file'])";;
+  return) curl -s -X POST "$B/api/inbox/$2/return" -H "$J" -d '{}' && echo;;
   inbox-done) curl -s -X POST "$B/api/inbox/$2" -H "$J" -d "{\"processed\":true,\"issue\":\"$3\"}" >/dev/null && echo "inbox $2 -> $3";;
   move) python3 - "$B" "$2" "$3" "${4:-}" <<'PY'
 import sys,json,urllib.request
@@ -54,5 +56,5 @@ r=urllib.request.Request(f"{b}/api/removed",data=json.dumps({"cid":c,"removed":T
 urllib.request.urlopen(r); print("moved to Deleted:",c)
 PY
   ;;
-  *) sed -n '2,19p' "$0"; exit 1;;
+  *) sed -n '2,20p' "$0"; exit 1;;
 esac
