@@ -113,11 +113,14 @@ function render(){
     const done=items.filter(x=>x.k==='done'),todo=items.filter(x=>x.k!=='done').sort((x,y)=>(x.k==='inprogress'?0:1)-(y.k==='inprogress'?0:1)||String(x.at).localeCompare(String(y.at)));
     const grp=(key,title,arr,empty)=>`<div class="secw ${S.openSecs.has('ib:'+key)?'open':''}" data-secw="ib:${key}"><div class="sec" data-sec="ib:${key}">${ic('chev')}<span class="stt">${title}</span><span class="n">${arr.length}</span></div><div class="secb"><div class="secin">${arr.map(x=>x.h).join('')||`<div class="ihint">${empty}</div>`}</div></div></div>`;
     if(!S.ibInit){S.ibInit=1;S.openSecs.add('ib:done');S.openSecs.add('ib:todo')}
-    /* sub-tabs: Completed · In progress · Resolved — each hidden when empty */
-    const subs=[['done','Completed',done.length],['todo','In progress',todo.length],['resolved','Resolved',(S.resolved||[]).length]].filter(x=>x[2]);
-    if(!subs.some(x=>x[0]===S.sub))S.sub=subs[0]?.[0];
-    const body=S.sub==='done'?done.map(x=>x.h).join(''):S.sub==='todo'?todo.map(x=>x.h).join(''):S.sub==='resolved'?resolvedHTML():'';
-    L.innerHTML=subs.length?`<div class="subtabs">${subs.map(([k,l,n])=>`<button class="subtab ${S.sub===k?'on':''}" data-sub="${k}">${l} <span class="c">${n}</span></button>`).join('')}</div>`+body:'<div class="empty">Nothing here yet. Comments and new screenshots show up here.</div>';
+    /* one list, three sections (always shown); the chips jump to a section and light up as you scroll */
+    const nres=(S.resolved||[]).length,secs=[['done','Completed',done.length],['todo','In progress',todo.length],['resolved','Resolved',nres]];
+    const ndone=S.comments.filter(c=>!c.resolved&&st(c)==='done').length;
+    const sec=(k,l,n,body,empty,extra='')=>{const shut=k==='resolved'&&!S.resOpen&&n;/* Resolved starts collapsed */return `<div class="ibsec ${shut?'shut':''}" data-ibsec="${k}"><div class="ibh" ${k==='resolved'&&n?'data-resopen':''}>${k==='resolved'&&n?ic('chev'):''}<span>${l}</span><span class="n">${n}</span>${extra}</div>${shut?'':n?body:`<div class="ihint">${empty}</div>`}</div>`};
+    L.innerHTML=`<div class="subtabs">${secs.map(([k,l,n])=>`<button class="subtab ${(S.sub||'done')===k?'on':''}" data-sub="${k}">${l} <span class="c">${n}</span></button>`).join('')}</div>`+
+      sec('done','Completed',done.length,done.map(x=>x.h).join(''),'Nothing waiting for you to check.',ndone?`<button class="chip" data-bulk="resolve">Resolve all · ${ndone}</button>`:'')+
+      sec('todo','In progress',todo.length,todo.map(x=>x.h).join(''),'Nothing queued. Comments and new screenshots show up here.')+
+      sec('resolved','Resolved',nres,resolvedHTML(),'Nothing resolved yet.');
   }else if(S.tab==='resolved'){L.innerHTML=resolvedHTML();
   }else{
     L.innerHTML=(S.deleted||[]).length?`<div class="delbar"><span>${S.deleted.length} waiting to be deleted</span><button class="chip danger" data-delall>Delete all</button></div>`+S.deleted.map(i=>`<div class="row drow" ${i.img?`data-exp="${esc(i.img)}" title="Open the screenshot"`:''}>${i.img?`<img class="dthumb" src="${esc(i.img)}" alt="">`:''}<span class="rt">${i.title.replace(/<[^>]+>/g,'')}</span><button class="chip" data-restore="${i.cid}">Restore</button></div>`).join(''):`<div class="empty">${ic('trash')}<br><b>Nothing deleted</b><br>When Claude deletes an issue it moves here with its thread, and stays until you resolve that thread. You can restore it from here.</div>`;
@@ -402,7 +405,7 @@ document.addEventListener('wheel',e=>{if(e.ctrlKey&&!e.target.closest('#vp'))e.p
 document.addEventListener('click',e=>{const bk=e.target.closest('[data-bulk]');if(bk){e.stopPropagation();bulk(bk.dataset.bulk)}},true);
 function bulkBar(all){S.bulkAll=all;const L=document.getElementById('list');let h='';
   if(S.tab==='new'||(FLOW&&S.tab!=='inbox'&&S.tab!=='deleted'&&S.tab!=='resolved')){const nu=all.filter(unread).length;h=(nu?`<button class="chip" data-bulk="read">Mark all read</button>`:'')+(all.length>nu?`<button class="chip" data-bulk="unread">Mark all unread</button>`:'')}
-  else if(S.tab==='inbox'&&S.sub==='done'){const n=S.comments.filter(c=>!c.resolved&&st(c)==='done').length;if(n)h=`<button class="chip" data-bulk="resolve">Resolve all · ${n}</button>`}
+  else if(false){const n=S.comments.filter(c=>!c.resolved&&st(c)==='done').length;if(n)h=`<button class="chip" data-bulk="resolve">Resolve all · ${n}</button>`}
   if(h){const sbt=L.querySelector('.subtabs'),x=`<div class="bulk">${h}</div>`;sbt?sbt.insertAdjacentHTML('afterend',x):L.insertAdjacentHTML('afterbegin',x)}}
 function setRead(i,read){const k=stKey(i.cid);if(read)S.readLocal.add(i.cid);else{S.readLocal.delete(i.cid);S.seen.delete(k)}post('api/state',{cid:k,new:!read})}
 function bulk(a){if(a==='read'||a==='unread'){const read=a==='read',ch=(S.bulkAll||[]).filter(i=>unread(i)===read);ch.forEach(i=>setRead(i,read));render();
@@ -441,7 +444,8 @@ document.addEventListener('click',e=>{const d1=e.target.closest('[data-rdel]');i
 function openNextTask(ti){if(ti<0)return;const T=[...document.querySelectorAll('#list .task')],el=T[ti]||T[ti-1];if(!el)return;const t=el.dataset.task;if(!t)return;
   const cid=t.startsWith('card:')?t.slice(5):null;if(cid&&S.items.some(i=>i.cid===cid)){select(cid);goTo(cid,true)}
   requestAnimationFrame(()=>{const a=document.querySelector(`#list .task[data-task="${t}"]`)||el;el.scrollIntoView({block:'nearest'});S.popT=t;openPop(t,a)})}
-document.addEventListener('click',e=>{const sb=e.target.closest('[data-sub]');if(sb){e.stopPropagation();S.sub=sb.dataset.sub;render();return}
+document.addEventListener('click',e=>{const ro=e.target.closest('[data-resopen]');if(ro&&!e.target.closest('button')){e.stopPropagation();S.resOpen=!S.resOpen;render();return}
+  const sb0=e.target.closest('[data-sub]');if(sb0){e.stopPropagation();if(sb0.dataset.sub==='resolved'&&!S.resOpen){S.resOpen=true;render()}const sb=document.querySelector(`.subtab[data-sub="${sb0.dataset.sub}"]`)||sb0;S.sub=sb.dataset.sub;sb.parentElement.querySelectorAll('.subtab').forEach(b=>b.classList.toggle('on',b===sb));const L=document.getElementById('list'),t=L.querySelector(`[data-ibsec="${sb.dataset.sub}"]`),h=L.querySelector('.subtabs');if(t)L.scrollTo({top:t.offsetTop-(h?h.offsetHeight:0),behavior:'smooth'});return}
   const pr=e.target.closest('[data-pres-view]');if(pr){e.stopPropagation();S.popRes=S.popRes===S.popT?null:S.popT;S.noFocus=1;openPop(S.popT,S.popAnchor);S.noFocus=0}},true);
 /* Alt: flip the selected card between its screenshot and its reference / previous one */
 addEventListener('keydown',e=>{if(e.key!=='Alt'||e.repeat||e.target.closest?.('input,textarea,[contenteditable=true]'))return;const b=document.querySelector(`[data-cmp="${S.sel}"]`);if(b){e.preventDefault();b.click()}});
@@ -498,12 +502,19 @@ S.anim=localStorage.qaAnim||'auto';   // screen switch: auto (slide; quick repea
 
 /* ---- Open app: the live app if it answers, else the repo on its branch (data.app = {url, repo, branch}) */
 {const A=D.app,b=document.getElementById('appbtn');if(b&&A&&(A.url||A.repo)){b.hidden=false;
-  const repoUrl=()=>A.repo?(A.branch?A.repo.replace(/\/$/,'')+(/github\.com/.test(A.repo)?'/tree/':'/-/tree/')+encodeURIComponent(A.branch):A.repo):null;
+  const repoUrl=()=>A.repo?(A.branch?A.repo.replace(/\/$/,'')+(/github\.com/.test(A.repo)?'/tree/':'/-/tree/')+encodeURI(A.branch):A.repo):null;
   b.title=A.url?`Open the app (${A.url})${A.repo?' · falls back to the repo if it isn’t running':''}`:'Open the repo'+(A.branch?' on '+A.branch:'');
   b.addEventListener('click',async()=>{const w=window.open('about:blank','_blank');let up=false;
-    if(A.url){try{const c=new AbortController();setTimeout(()=>c.abort(),1500);await fetch(A.url,{mode:'no-cors',signal:c.signal});up=true}catch{}}
+    if(A.url&&!A.repo)up=true;else if(A.url){try{const c=new AbortController();setTimeout(()=>c.abort(),1500);await fetch(A.url,{mode:'no-cors',signal:c.signal});up=true}catch{}}
     const to=up?A.url:repoUrl();if(to){w.location=to;if(!up&&A.url)toast('The app isn’t running — opened the repo instead')}else{w.close();toast('The app isn’t running, and no repo is set')}})}}
 
 /* ---- this canvas claims new Desktop screenshots while it's the one you use (focus / click; refreshed at most every 10 s) */
 {let last=0;const claim=()=>{if(document.visibilityState!=='visible'||S.offline)return;const t=Date.now();if(t-last<10000)return;last=t;fetch(API+'api/active',{method:'POST'}).catch(()=>{})};
   claim();addEventListener('focus',claim);document.addEventListener('visibilitychange',claim);document.addEventListener('pointerdown',claim,true)}
+
+/* To-dos spy scroll: the chip of the section under the pinned chips lights up */
+document.getElementById('list').addEventListener('scroll',()=>{if(S.tab!=='inbox')return;const L=document.getElementById('list'),h=L.querySelector('.subtabs');if(!h)return;const y=L.scrollTop+h.offsetHeight+8;let cur='done';L.querySelectorAll('[data-ibsec]').forEach(x=>{if(x.offsetTop<=y)cur=x.dataset.ibsec});if(L.scrollTop+L.clientHeight>=L.scrollHeight-2)cur=[...L.querySelectorAll('[data-ibsec]')].pop()?.dataset.ibsec||cur;if(cur!==S.sub){S.sub=cur;h.querySelectorAll('.subtab').forEach(b=>b.classList.toggle('on',b.dataset.sub===cur))}},{passive:true});
+/* paste a screenshot (Cmd+V) straight into this canvas's To-dos — no scope check needed */
+document.addEventListener('paste',e=>{if(e.target.closest?.('input,textarea,[contenteditable=true]'))return;const f=[...(e.clipboardData?.items||[])].find(i=>i.type.startsWith('image/'))?.getAsFile();if(!f)return;e.preventDefault();
+  const r=new FileReader();r.onload=async()=>{const it=await post('api/inbox/paste',{data:r.result});if(!it?.id){toast('Couldn’t add the screenshot');return}S.inbox.push(it);render();
+    toast('Screenshot added to To-dos');const T=document.getElementById('toast');T.insertAdjacentHTML('afterbegin','<img class="tthumb" src="'+r.result+'" alt="">');T.insertAdjacentHTML('beforeend',' <button class="undo" data-open="card:'+it.id+'">Add comment</button>');clearTimeout(T._t);T._t=setTimeout(()=>T.style.display='none',10000)};/* thumbnail + 10 s so you can see what went in */r.readAsDataURL(f)});

@@ -14,5 +14,6 @@ Tools: this skill's `scripts/` (`watch-inbox.py`, `comments.sh`).
 
 ## Which canvas gets a screenshot
 - Only the canvas the user used last (focus or click; `~/.claude/design-qa-active.json`) takes new Desktop screenshots. Until a canvas is used, they stay on the Desktop.
-- **Check scope first.** Before turning a screenshot into an issue or step, check that it belongs to this canvas: the same app or URL, and the same flow or area this canvas covers. If it clearly doesn't, or you're not sure, don't file it: `comments.sh return <INid>`. That puts it back on the Desktop under its original name, and the other running canvases may take it; the canvases that returned it never take it again. Only file it when you're sure it's in scope.
+- **Pasted screenshots** (`pasted: true`, the user pressed Cmd+V in this canvas) were put here on purpose: skip the scope check, just decide where they go.
+- **Check scope first** (Desktop screenshots). Before turning a screenshot into an issue or step, check that it belongs to this canvas: the same app or URL, and the same flow or area this canvas covers. If it clearly doesn't, or you're not sure, don't file it: `comments.sh return <INid>`. That puts it back on the Desktop under its original name, and the other running canvases may take it; the canvases that returned it never take it again. Only file it when you're sure it's in scope.
 

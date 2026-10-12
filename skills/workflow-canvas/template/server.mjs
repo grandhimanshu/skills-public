@@ -174,6 +174,18 @@ const server = http.createServer(async (req, res) => {
   // Screenshot inbox: new Desktop screenshots land here instantly; Claude later adds context and marks them processed.
   if (p === '/api/active' && req.method === 'POST') { try { fs.mkdirSync(path.dirname(ACTIVE), { recursive: true }); fs.writeFileSync(ACTIVE, JSON.stringify({ port: PORT, root: ROOT, at: now() })) } catch {} return send(res, 200, { ok: true }) }
   if (p === '/api/active' && req.method === 'GET') return send(res, 200, { ...readJson(ACTIVE, {}), me: PORT })
+  // A screenshot pasted into this canvas (Cmd+V): goes straight to its To-dos — it was put here on purpose, so no scope check
+  if (p === '/api/inbox/paste' && req.method === 'POST') {
+    if (req.headers['x-actor'] !== 'User') return send(res, 403, { error: 'only the user pastes screenshots' })
+    const b = await readBody(req), m = String(b.data || '').match(/^data:image\/(png|jpe?g|webp);base64,(.+)$/)
+    if (!m) return send(res, 400, { error: 'expected an image data URL' })
+    const d = readJson(INBOX, { items: [] }), k = d.items.reduce((mx, x) => Math.max(mx, Number(String(x.id).slice(2)) || 0), 0) + 1
+    const dir = path.join(ROOT, 'screenshots', 'inbox'); fs.mkdirSync(dir, { recursive: true })
+    const file = `IN${k}-pasted-${new Date().toISOString().replace(/[-:T]/g, '').slice(0, 14)}.${m[1] === 'jpeg' ? 'jpg' : m[1]}`
+    fs.writeFileSync(path.join(dir, file), Buffer.from(m[2], 'base64'))
+    const it = { id: 'IN' + k, file: 'screenshots/inbox/' + file, at: now(), processed: false, pasted: true }
+    d.items.push(it); fs.writeFileSync(INBOX, JSON.stringify(d, null, 2)); console.log('inbox + (pasted)', it.id); return send(res, 200, it)
+  }
   // Out of scope for this canvas: put it back on the Desktop under its original name (Claude may do this)
   const rt = p.match(/^\/api\/inbox\/([^/]+)\/return$/)
   if (rt && req.method === 'POST') {

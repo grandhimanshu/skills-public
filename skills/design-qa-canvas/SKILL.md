@@ -76,6 +76,7 @@ Rules:
   - **← →** step to the previous / next issue without marking it read (same screenshot rule as Space).
   - **+ Add issue** (hover, the last row under a card's issues) adds an issue on that screenshot by hand: same section and screenshot, title open for typing. Saved in `canvas-added.json` (merged in at load); treat these like any issue.
   - Shared cards also have screenshot-level priority (shows the highest among its issues; changing it moves every issue at that level), read-all, menu (first issue), delete-all (confirms) and chat (first issue).
+  - **Cmd+V** on the canvas pastes a screenshot straight into this canvas's To-dos (toast with a thumbnail and Add comment).
   - **Alt** flips the selected card to its design reference (`ref`). The keyboard button by the zoom controls lists every shortcut.
   - Double-click any text to edit it in place; this saves to `canvas-edits.json`.
 - **Card actions:**

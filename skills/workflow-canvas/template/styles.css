@@ -618,3 +618,11 @@ html.noprio .pp,html.noprio .card .lacts .pp,html.noprio .trow h3 .a.pp,html.nop
 .card:not(.grp) .addrow{padding-left:0;padding-right:0;margin-top:calc(100cqw * 10 / var(--zw,1712))}
 .card .addrow:hover{color:var(--blue);background:rgba(0,0,0,.03)}
 .card.grp .addrow{padding-left:6.6px}
+/* bottom-right: [open app · shortcuts] [zoom] */
+.toolrow{position:fixed;right:16px;bottom:16px;display:flex;gap:8px;align-items:flex-end;z-index:6}.toolrow .tools{position:static}.toolrow .tools2:not(:has(.ib:not([hidden]))){display:none}
+/* To-dos sections */
+.ibsec{padding-bottom:6px}.ibh{display:flex;align-items:center;gap:8px;padding:12px 14px 6px;font-size:12px;font-weight:600;color:var(--muted);text-transform:none}.ibh .n{font-weight:500}.ibh .chip{margin-left:auto;font-weight:500;cursor:pointer}.ibsec .ihint{padding:4px 14px 10px;font-size:12px;color:var(--faint)}
+.subtabs{background:linear-gradient(var(--panel) 70%,transparent)}
+#toast .tthumb{display:inline-block;vertical-align:middle;height:36px;max-width:64px;object-fit:cover;object-position:top;border-radius:4px;margin-right:10px;border:1px solid rgba(255,255,255,.25)}
+#appbtn[hidden],.toolrow [hidden]{display:none!important}
+.ibh[data-resopen]{cursor:pointer}.ibh[data-resopen] .i{width:12px;height:12px;transition:transform .15s}.ibsec:not(.shut) .ibh[data-resopen] .i{transform:rotate(180deg)}
