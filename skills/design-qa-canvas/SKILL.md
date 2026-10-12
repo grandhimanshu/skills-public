@@ -9,6 +9,8 @@ One canvas the user reviews and steers. The UI is **done**: `template/` is copie
 
 First build from a recording or a live page: read **`agent-references/evidence.md`** (transcript, speakers, frames, parallel live audit with subagents).
 
+**Start both watchers whenever the canvas runs:** `watch-comments.py <port>` and `watch-inbox.py <port>`, each under its own Monitor. The canvas shows an amber warning while either one is off.
+
 The review loop is part of this skill (read only when needed):
 - **`agent-references/comment-watcher.md`** — every comment is a task for Claude: watch, work, reply.
 - **`agent-references/screenshot-watcher.md`** — screenshots the user takes land in the To-dos; turn each into an issue.

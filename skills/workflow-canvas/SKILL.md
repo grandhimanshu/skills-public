@@ -7,6 +7,8 @@ description: Lay out a product flow as screenshots joined by labelled arrows on 
 
 Built from the same components as **design-qa-canvas**, in **flow mode**: each card is a **step** (one screenshot), and arrows join steps left → right. Comments, the To-dos, priorities, the unread dot, Settings, Undo and the offline queue all work the same. The difference is the data file: `flows.json` with `steps` and `edges` instead of `issues`.
 
+**Start both watchers whenever the canvas runs:** `watch-comments.py <port>` and `watch-inbox.py <port>`, each under its own Monitor. The canvas shows an amber warning while either one is off.
+
 The review loop is part of this skill: **`agent-references/comment-watcher.md`** (every comment is a task) and **`agent-references/screenshot-watcher.md`** (the user's Desktop screenshots become steps, see below).
 
 ## Start
