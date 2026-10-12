@@ -29,11 +29,36 @@ if FLOW:
         if 'n' not in st: nxt += 1; st['n'] = nxt
         st.setdefault('id', str(st['n']))
     json.dump(cfg, open(src, 'w', encoding='utf-8'), indent=2, ensure_ascii=False)
-    def ver(img):   # changes when the screenshot file changes -> the step shows as New again
+    VERS = HERE / 'canvas-imgver.json'   # {stepId: [v, look]}: v only changes when the screenshot really changes
+    vers = json.load(open(VERS)) if VERS.exists() else {}
+    def look(f):   # 16x16 grey thumbnail: the same screen at a higher resolution looks the same
+        try:
+            from PIL import Image
+            with Image.open(f) as im: return list(im.convert('L').resize((16, 16)).getdata())
+        except Exception: return None
+    def ver(img, sid):   # changes when the screenshot changes -> the step shows as New again; a sharper copy of the same screen stays read
         f = HERE / img if img else None
-        return hashlib.sha1(f.read_bytes()).hexdigest()[:8] if f and f.exists() else ''
+        if not (f and f.exists()): return ''
+        v, lk = hashlib.sha1(f.read_bytes()).hexdigest()[:8], look(f)
+        old = vers.get(sid)
+        if old and old[0] != v and lk and old[1] and sum(abs(a - b) for a, b in zip(lk, old[1])) / 256 < 6: v = old[0]
+        vers[sid] = [v, lk]
+        return v
     cfg.setdefault('sections', []); cfg['issues'] = []
 
+import re
+EDITS = HERE / 'canvas-edits.json'
+if EDITS.exists():
+    ed = json.load(open(EDITS, encoding='utf-8')); before = json.dumps(ed)
+    def tidy(h): return re.sub(r'\s(style|class|color|face|size)="[^"]*"', '', re.sub(r'</?(span|font)\b[^>]*>', '', h)) if isinstance(h, str) else h
+    for k, e in ed.items():
+        if not isinstance(e, dict) or k == 'sections': continue
+        if 'out' in e:
+            o = e.pop('out')
+            if o or e.get('what'): e['what'] = '<br>'.join(x for x in (o, e.get('what', '')) if x)
+        for f in ('title', 'what'):
+            if f in e: e[f] = tidy(e[f])
+    if json.dumps(ed) != before: json.dump(ed, open(EDITS, 'w', encoding='utf-8'), indent=2, ensure_ascii=False)
 PORT = cfg.get('port', 4200)
 hl = cfg.get('highlight')            # optional: {"label": "Alex’s points", "chip": "Alex"}
 sections = list(cfg['sections'])
@@ -41,6 +66,8 @@ issues = cfg['issues']
 
 nxt = max([i['n'] for i in issues if 'n' in i], default=0)
 for it in issues:
+    if 'out' in it:   # older issues had a separate line under the heading: it is now the first line of the details
+        o = it.pop('out'); it['what'] = '<br>'.join(x for x in (o, it.get('what', '')) if x)
     if 'n' not in it:
         nxt += 1; it['n'] = nxt
     if it['kind'] not in KINDS: raise SystemExit(f"issue {it.get('code') or it['n']}: kind must be one of {sorted(KINDS)}")
@@ -50,12 +77,12 @@ json.dump(cfg, open(src, 'w', encoding='utf-8'), indent=2, ensure_ascii=False)
 if FLOW:
     data = {'mode': 'flow', 'title': cfg.get('title', 'Flow'), 'port': PORT, 'highlight': None, 'sections': [],
             'flowNames': cfg.get('flows', {}), 'edges': cfg.get('edges', []), 'issues': [],
-            'steps': [{'cid': str(st['id']), 'n': st['n'], 'title': st.get('title', ''), 'out': st.get('note', ''), 'what': st.get('what', ''),
-                       'img': st.get('img'), 'prev': st.get('prev'), 'v': ver(st.get('img')), 'kind': 'gap', 'section': '', 'sugg': st.get('sugg', [])} for st in steps]}
+            'steps': [{'cid': str(st['id']), 'n': st['n'], 'title': st.get('title', ''), 'what': '<br>'.join(x for x in (st.get('note', ''), st.get('what', '')) if x),
+                       'img': st.get('img'), 'prev': st.get('prev'), 'v': ver(st.get('img'), str(st['id'])), 'kind': 'gap', 'section': '', 'sugg': st.get('sugg', [])} for st in steps]}
 else:
   data = {'title': cfg.get('title', 'Design QA'), 'port': PORT, 'highlight': hl, 'sections': sections,
           'issues': [{'cid': str(it.get('code') or it['n']), 'n': it['n'], 'section': it['section'], 'kind': it['kind'],
-                    'title': it['title'], 'what': it.get('what', ''), 'out': it.get('out', ''), 'img': it.get('img'),
+                    'title': it['title'], 'what': it.get('what', ''), 'img': it.get('img'),
                     'ts': it.get('ts', ''), 'hl': bool(it.get('highlight')), 'sugg': it.get('sugg', []), 'screen': it.get('screen', '')} for it in issues]}
 if VIEW:   # bake in what the server would answer, so titles, notes, deletions and priorities match the live canvas
     rd = lambda n, d: json.load(open(HERE / n, encoding='utf-8')) if (HERE / n).exists() else d
@@ -78,7 +105,21 @@ data['imgs'] = {}
 for d in (data.get('steps') or data['issues']):
     for im in (d.get('img'), (d.get('prev') or {}).get('img')):
         if im and im not in data['imgs'] and (m := imgmeta(im)): data['imgs'][im] = m
-data['app'] = cfg.get('app')   # optional {url, repo, branch}: the Open app button
+if FLOW: json.dump(vers, open(VERS, 'w'))
+if VIEW and FLOW:   # viewers see the current state only
+    for st in data['steps']: st['prev'] = None
+import hashlib as _h, datetime as _dt
+DEP = HERE / 'canvas-deploy.json'   # {version, at, hash}: goes up once per view build whose content changed
+dep = json.load(open(DEP)) if DEP.exists() else {}
+if VIEW:
+    hv = _h.sha1((json.dumps(data, sort_keys=True, ensure_ascii=False) + ''.join((HERE / f).read_text(encoding='utf-8') for f in ('body.html', 'styles.css', 'canvas.js'))).encode()).hexdigest()[:12]   # content or template changed
+    if dep.get('hash') != hv:
+        dep = {'version': dep.get('version', 0) + 1, 'at': _dt.datetime.now().strftime('%b %-d, %Y, %H:%M'), 'hash': hv}
+        json.dump(dep, open(DEP, 'w'), indent=2)
+data['deploy'] = {'version': dep.get('version'), 'at': dep.get('at'), 'url': (cfg.get('deploy') or {}).get('url')}
+app = dict(cfg.get('app') or {}); app.pop('dir', None)   # dir: local repo folder, used by scripts/app-links.py only
+if VIEW: app.pop('local', None)
+data['app'] = app or None   # optional {url, repo, branch}: the Open app button
 blob = json.dumps(data, ensure_ascii=False).replace('</', '<\\/')
 
 body = (HERE / 'body.html').read_text(encoding='utf-8')

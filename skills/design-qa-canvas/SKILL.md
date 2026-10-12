@@ -39,9 +39,8 @@ nohup node server.mjs 4200 > server.log 2>&1 &   # http://localhost:4200 — one
 |---|---|
 | `section` | an app area (New order, Eligibility…), never a source |
 | `kind` | `gap` dev ≠ design · `ux` design question · `dec` decided · `later` parked · `ctx` screenshot without context yet |
-| `title` | the heading; short, specific. Each issue has its own heading and details; details are clamped to 2 lines |
-| `out` | the line under the heading: what to do (always visible) |
-| `what` | details: the observation (inside "Show more"). Inline `<b> <i> <code> <br>` allowed |
+| `title` | the heading, and the presenting cue: a few words that say the issue on their own |
+| `what` | details, only what the title can't say (often empty). Inline `<b> <i> <code> <br>` allowed. On the canvas, title and details edit as one box: the first line is the title, Enter goes to the details |
 | `img`, `ts` | screenshot path relative to the canvas; video time |
 | `code` | `S1…` from screenshots, `A1…` from live audits. Otherwise the id is the number |
 | `highlight` | flags the person in `highlight.chip` |
@@ -68,15 +67,20 @@ Rules:
   - Medium: misleading or inconsistent UI.
   - Low: polish (the default).
 
-## Publishing a read-only view (e.g. Vercel)
+## Deploying (always the view build)
 
 ```bash
 python3 build.py issues.json index.html --view
 ```
-- Builds a page for viewers with no server or watchers: no comments, read/unread, priorities, deleting, adding issues, editing or paste. Only the Issues list shows.
-- The user's live changes (edited titles, deletions, priorities, accepted suggestions, added issues) are baked in at build time, so rebuild after changes.
-- Deploy `index.html` together with the screenshot folder the image paths point to.
-- Every build records each screenshot's size and a tiny pixelated preview (needs Pillow: `pip3 install pillow`), so cards keep their place while the real images load.
+- Every deployment (Vercel, GitLab Pages, any host) uses `--view`; the live canvas with its server and watchers stays local.
+- Viewers get the Issues list only: no comments, read/unread, priorities, editing, adding, deleting or paste. Design references (`ref`, Alt) stay.
+- The user's live changes (edited titles, deletions, accepted suggestions, added issues) are baked in, so rebuild before each deploy.
+- Deploy `index.html` with the screenshot folders. Put the deployed address in `"deploy": {"url": …}`.
+- The version (v1, v2…) and date go up by themselves when a view build's content changed (`canvas-deploy.json`). The ⋯ menu shows them; on the live canvas it reads "Last deployed …" or "Not deployed yet".
+- Every build records each screenshot's size and a tiny pixelated preview (Pillow, optional), so cards keep their place while images load.
+
+## Toolbar links (`"app"` in issues.json)
+`{"url": reference build under review, "repo": …, "branch": …, "dir": local repo folder, "localPort"?: …}`. Globe = `url`, git = repo on the branch, the local build only on the live canvas. Hovering shows the exact address; the ⋯ menu lists them all. `scripts/app-links.py <canvas folder>` refreshes branch and local link from `dir`; the watchers run it when they re-arm.
 
 ## What the user can do (so you can answer questions; don't re-implement any of it)
 
@@ -128,7 +132,6 @@ agent-references/contribution-agents.md — read before changing this skill
 
 ## Backlog (ideas, not built)
 
-- **Reference screenshot on the card**: show the design's screenshot of the same screen next to (or toggled with) the build's, so a gap can be checked at a glance.
-- **Add an issue yourself, from the canvas**: on an existing screenshot (it joins that card) or with no screenshot at all (a text-only card). Until this exists, ask Claude in a comment ("add an issue here: …"); Claude adds it to `issues.json` and rebuilds.
+- **Viewers flag priority**: in a deployed view, viewers suggest a priority and the user sees it. Needs a store the deployment can write to.
 - **See deleted issues in full**: clicking an item in the Deleted tab shows the whole card (screenshot, title, details, comments), e.g. on a separate "Deleted" canvas view, with **Restore** right there. Today the Deleted tab only lists titles with Restore.
 - **Markers on the screenshot** for cards with several issues: numbered pins pointing at the exact spot. Parked because placing them reliably is fiddly. Revisit if "which field?" keeps coming up.

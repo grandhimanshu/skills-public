@@ -45,23 +45,22 @@ Rebuild after every `flows.json` change; the open page waits until the user stop
   - Branches: give a step several outgoing edges. Steps at the same depth stack in one column.
 - **Flows** are the connected groups of steps, laid out top to bottom in the order of their first step.
 
-### Keep flows linear, don't tangle them
-Arrows that cross between flows are hard to follow while presenting. So:
-- **One main flow shows every core screen in a straight line**, start to finish (e.g. pencil → sheet → reason → saved → hover).
-- **Other entry points are their own flow** (their own blue heading), not arrows into the middle of the main flow. If "PA: patient not found" and "Coverage: no match" both open the same sheet, don't draw both into it: each is its own short flow that ends at its own screen, and the main flow already shows the sheet. Name the flow after the entry point.
-- **Connect flows only when the link is the point**, e.g. a branch that only makes sense as a continuation. Then use one arrow, not several.
-- **Branch sparingly.** A side outcome (e.g. "assignees notified") can branch off the main flow; keep it to one level.
-- Before building, check: does any arrow go backwards, cross another flow, or point into a screen that already has an arrow in? If so, make it a separate flow instead.
+- **Laying out or reorganising flows:** read `agent-references/layout.md` (keep flows linear; a default, not a hard rule).
 
-## Publishing a read-only view (e.g. Vercel)
+## Deploying (always the view build)
 
 ```bash
 python3 build.py flows.json index.html --view
 ```
-- Builds a page for viewers with no server or watchers: no comments, read/unread, priorities, deleting, adding, renaming or paste. Only the Screens list shows.
-- What the user changed on the live canvas (renamed titles, notes, deleted steps, priorities) is baked in at build time, so rebuild after changes.
-- Deploy `index.html` together with `shots/` (the folder the image paths point to). Nothing else is needed.
-- Every build (live or view) records each screenshot's size and a tiny pixelated preview (needs Pillow: `pip3 install pillow`), so cards keep their place while the real images load.
+- Every deployment (Vercel, GitLab Pages, any host) uses `--view`; the live canvas with its server and watchers stays local.
+- Viewers get the Screens list only, current state only: no comments, read/unread, editing, deleting or paste, and no previous screenshots (Alt is off).
+- The user's live changes (titles, details, deleted steps) are baked in, so rebuild before each deploy.
+- Deploy `index.html` with `shots/`. Put the deployed address in `"deploy": {"url": …}`.
+- The version (v1, v2…) and date go up by themselves when a view build's content changed (`canvas-deploy.json`). The ⋯ menu shows them; on the live canvas it reads "Last deployed …" or "Not deployed yet".
+- Every build records each screenshot's size and a tiny pixelated preview (Pillow, optional), so cards keep their place while images load.
+
+## Toolbar links (`"app"` in flows.json)
+`{"repo": …, "branch": …, "dir": local repo folder, "localPort"?: …, "url"?: hosted app}`. Git = repo on the branch (ships in the view), local build = live canvas only, globe = `url` if set. Hovering shows the exact address; the ⋯ menu lists them all. `scripts/app-links.py <canvas folder>` refreshes branch and local link from `dir`; the watchers run it when they re-arm.
 
 ## What the user can do (don't re-implement)
 
@@ -72,6 +71,7 @@ python3 build.py flows.json index.html --view
 - **New tab** (there is no Issues tab): steps the user hasn't seen, **including steps whose screenshot changed**. Read state is per screenshot version.
 - **0** zooms to the step nearest the cursor; **0** again shows the whole canvas.
 - **→** walks one whole path to its end, then the next branch; **←** goes back left along the arrows (on a flow's first step, to the last screen of the previous flow) (never sideways to another branch), and → after ← retraces the same branch; **↑ ↓** step through every card in canvas order. Pressing again within 0.7s switches instantly instead of animating, so you can flip between screens to spot the change. **Space** marks the selected step read and moves on, like →. Leaving a flow's end screen plays a soft red ring on it for 0.3s before moving. **Delete** removes the selected step (the flow reconnects; Undo).
+- **Alt** flips a step that has `prev` to its previous screenshot (only those steps; not in the view build).
 - Comments, priority H/M/L, double-click editing, Settings (Numbers, Titles, Canvas background, default #F4F4F4), and the Claude-watching line all work as in design-qa-canvas.
 
 ## Updating a step's screenshot (keep one previous)
@@ -79,6 +79,7 @@ python3 build.py flows.json index.html --view
 When the screen changes, put the new image in `img` and the old one in `prev` (**one previous only**: `prev` replaces any older one).
 - Which screenshot becomes `prev`: the one the user names. Otherwise use the step's screenshot from the last change in the flow.
 - If nothing changed visually, leave the step alone. No `prev`, no new version.
+- **A sharper copy of the same screen** (higher resolution only): replace `img`, no `prev`. The build sees it looks the same and keeps the step read (`canvas-imgver.json`); don't mark it New.
 - **Keep it read when you're sure it needs no review:** if the user already reviewed this exact change (here, or the same change on another step) and you're really confident, keep the new screenshot read: after rebuilding, `comments.sh seen <cid> <img>`. When in doubt, leave it New.
 - The step then shows up in **New** for the user.
 - Dates in `prev.label`: just the date (`Oct 9`) when it differs from the previous version's. **On the same date, add the time** (`Oct 9, 16:58`), never a counter like `Oct 9 (3rd)`.
@@ -94,4 +95,4 @@ Helper commands are in this skill's `scripts/` (`comments.sh`, `watch-comments.p
 
 ## Backlog (ideas, not built or parked)
 
-- **Compare with the previous screenshot**: a toggle on a step that has `prev`, swapping between the current and previous screenshot with a "Before" tag. Built once and parked (the button read as "split" and wasn't needed yet). `prev` is still recorded so this can come back.
+- **Viewers flag priority** in a deployed view, for the user to see. Needs a store the deployment can write to.

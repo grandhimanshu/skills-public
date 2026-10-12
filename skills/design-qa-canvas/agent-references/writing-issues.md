@@ -6,9 +6,9 @@ How the words on a card read: title and details. (What to report at all, screens
 
 - Lead the title with what's wrong, in plain words.
 - Add what it should be only when that isn't obvious from the problem.
-- Write a title a teammate understands without opening the card.
+- Write a title a teammate understands without opening the card. The user presents from the titles, so each one should carry the point alone.
 - Use the names the user sees on screen.
-- Leave the details empty when the title says it all.
+- Leave the details empty when the title says it all. No next step or "to do" line.
 - Use short bullets in the details when one card has several parts.
 - End the details with a plain "Reporter: <name / AI>" line if you know.
 

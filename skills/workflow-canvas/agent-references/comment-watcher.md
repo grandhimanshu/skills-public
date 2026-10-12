@@ -2,7 +2,7 @@
 
 Tools: this skill's `scripts/` (`watch-comments.py`, `comments.sh`). Set `PORT` to the canvas port.
 
-1. **Watch.** Run `watch-comments.py <port>` under **Monitor** (re-arm every 30 min). The watcher reports to the canvas: the user sees whether Claude is watching, and an amber warning as soon as it stops. **Re-arm promptly when Monitor times out**, so the warning doesn't stay up. Each new user comment or reply arrives as a `TASK <id> on <target> …` line. Open threads: `comments.sh list`. **Never read `canvas-resolved.json`.**
+1. **Watch.** Run `watch-comments.py <port>` under **Monitor** (re-arm every 30 min; each re-arm also run `scripts/app-links.py <canvas folder>` so the toolbar links stay current). The watcher reports to the canvas: the user sees whether Claude is watching, and an amber warning as soon as it stops. **Re-arm promptly when Monitor times out**, so the warning doesn't stay up. Each new user comment or reply arrives as a `TASK <id> on <target> …` line. Open threads: `comments.sh list`. **Never read `canvas-resolved.json`.**
 2. **Decide who does the work:**
    - **≤ 2 open tasks:** do them yourself.
    - **More than 2:** you become the **coordinator**. Hand each task to a background Sonnet subagent with a self-contained prompt: the comment id, target and text, the exact files, what "done" looks like, and the `comments.sh` commands.

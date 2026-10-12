@@ -36,8 +36,8 @@ async function load(){
   try{[p,c,inb,stt,ed,rm,sg,ad]=await Promise.all(['api/priorities','api/comments','api/inbox','api/state','api/edit','api/removed','api/suggestions','api/added'].map(j))}catch{S.offline=true}
   const ren=ed.sections||{};document.getElementById('ttl').textContent=D.title;document.title=D.title;
   S.sections=D.sections.map(x=>ren[x]||x);
-  const mk=i=>{const e=ed[i.cid]||{},acc=(i.sugg||[]).filter(([id])=>sg[id]==='accepted').map(([,t])=>'• '+t.replace(/^<b>[^<]*<\/b>\s*/,''));
-    const what=(e.what??i.what??'');return {...i,screen:e.screen!==undefined?e.screen:(i.screen||''),section:ren[i.section]||i.section,title:e.title??i.title,out:e.out??i.out,
+  const mk=i=>{const e0=ed[i.cid]||{},e=e0.out?{...e0,what:[e0.out,e0.what].filter(Boolean).join('<br>')}:e0,acc=(i.sugg||[]).filter(([id])=>sg[id]==='accepted').map(([,t])=>'• '+t.replace(/^<b>[^<]*<\/b>\s*/,''));
+    const what=(e.what??i.what??'');return {...i,screen:e.screen!==undefined?e.screen:(i.screen||''),section:ren[i.section]||i.section,title:e.title??i.title,out:'',
       what:acc.length&&!e.what?(what?what+'<br>':'')+acc.join('<br>'):what,sugg:(i.sugg||[]).filter(([id])=>!sg[id]).map(([,t])=>t),sids:(i.sugg||[]).filter(([id])=>!sg[id]).map(([id])=>id),...(!FLOW&&i.ref?{prev:{img:i.ref,label:i.refLabel||'',ref:true}}:{})}};
   if(FLOW){D.issues=D.steps}else if(ad?.items?.length){/* issues the user added by hand */D.issues=D.issues.concat(ad.items.filter(a=>!D.issues.some(i=>i.cid===a.cid)))}
   S.mk=mk;
@@ -180,13 +180,13 @@ function sgApply(cid,how){const it=S.items.find(i=>i.cid===cid),box=document.que
 const trimHtml=h=>String(h||'').replace(/^(\s|&nbsp;|<br\s*\/?>|<div>\s*<\/div>)+|(\s|&nbsp;|<br\s*\/?>|<div>\s*<\/div>)+$/gi,'');
 // ---- card layout v2 (reference: issue row = [#] [priority][unread] Title [Details ⌄] … hover: [menu][delete][comment]) ----
 const MAXG=4;   // more than 4 issues on one screen -> the rest continue on another card with the same screenshot
-const hasDet=i=>[i.out,i.what].map(trimHtml).some(Boolean);
+const hasDet=i=>!!trimHtml(i.what);
 function addRow(i){return FLOW?'':`<button class="addrow" data-addiss="${i.cid}" title="Add an issue on this screenshot">+ Add issue</button>`}
 function hoverActs(i,cls){const T=threads('card:'+i.cid),n=T.length,ai=T.some(t=>(t.thread||[]).at(-1)?.by==='Claude');return `<span class="${cls}">${i.prev?`<button class="a hv cmp" data-cmp="${i.cid}" title="${i.prev.ref?'Show the design reference (Alt)':'Compare with the previous screenshot (Alt)'}${i.prev.label?' ('+esc(i.prev.label)+')':''}">${ic(i.prev.ref?'image':'history')}</button>`:''}<button class="a hv" data-menu="${i.cid}" title="More">${ic('more')}</button><button class="a hv del" data-del="${i.cid}" title="Delete issue">${ic('trash')}</button><button class="a cmi ${n?'has':'hv'} ${ai?'ai':''}" data-open="card:${i.cid}" title="Comments">${ic('msg')}${n?`<em>${n}</em>`:''}</button></span>`}
 /* a thread moved from this issue to the one it is now about leaves a link behind */
 function movedNote(i){const m=S.comments.filter(c=>c.movedFrom==='card:'+i.cid&&!c.resolved);if(!m.length)return '';const to=m[0].target.slice(5),it=(S.items||[]).find(x=>x.cid===to);return `<button class="moved" data-goto="${to}">${m.length>1?m.length+' comments':'Comment'} moved to ${it?num(it)+' · '+esc(it.title):to} →</button>`}
 function issueRow(i){return `<div class="trow"><h3><span class="snt">${num(i)}</span><button class="a pp ${pr(i)}" data-prio="${i.cid}" title="${PL[pr(i)]} priority — click to change">${PS[pr(i)]}</button>${unread(i)?`<button class="a rd" data-read="${i.cid}" title="Unread — click to mark read"><i></i></button>`:''}<span class="ttl" data-ed="title">${i.title}</span>${hasDet(i)?`<button class="dtog ${i.expanded?'up':''}" data-more="${i.cid}" title="Details">Details ${ic('chev')}</button>`:''}</h3></div>${movedNote(i)}
-    <div class="body ${i.expanded?'':'shut'}" data-body="${i.cid}"><div class="fix" data-ed="out">${[i.out,i.what].map(trimHtml).filter(Boolean).join('<br><br>')}</div></div>
+    <div class="body ${i.expanded?'':'shut'}" data-body="${i.cid}"><div class="fix" data-ed="what">${trimHtml(i.what)}</div></div>
     ${i.sugg.length?`<div class="sugg"><div class="sh">Claude’s suggestions · ${i.sugg.length}<button class="rjall" data-sgtop="${i.cid}">Reject all</button></div><ul>${i.sugg.map((s,k)=>`<li><input type="checkbox" data-sg="${i.cid}:${k}" aria-label="Select suggestion"><span style="flex:1">${s.replace(/^<b>[^<]*<\/b>\s*/,'')}</span></li>`).join('')}</ul><div class="sg-bar" data-sgbar="${i.cid}"></div></div>`:''}`}
 const LOADED=new Set();   // screenshots already loaded once: re-renders skip the preview
 function shotBox(f,acts,one,extraL){return `<div class="shotw">${f.img?`${(m=>m&&!LOADED.has(f.img)?`<img class="shot lq" src="${esc(f.img)}" width="${m[0]}" height="${m[1]}" style="aspect-ratio:${m[0]}/${m[1]};background-image:url(${m[2]})" onload="this.classList.remove('lq');LOADED.add(this.getAttribute('src'))" draggable="false" decoding="async">`:`<img class="shot" src="${esc(f.img)}" draggable="false" decoding="async">`)(D.imgs?.[f.img])}`:'<div class="noshot">No screenshot</div>'}<div class="lacts">${one?`<button class="a pp ${pr(f)}" data-prio="${f.cid}" title="${PL[pr(f)]} priority — click to change">${PS[pr(f)]}</button>`:''}${one&&unread(f)?`<button class="a rd" data-read="${f.cid}" title="Unread — click to mark read"><i></i></button>`:''}${extraL||''}${f.img?`<button class="a exp2" data-exp="${esc(f.img)}" title="Open full size">${ic('expand')}</button>`:''}</div>${f.prev?`<span class="prevtag">${f.prev.ref?'Design':'Before'}${f.prev.label&&!/^before$/i.test(f.prev.label)?' · '+esc(f.prev.label):''}</span>`:''}${acts||''}</div>`}
@@ -317,7 +317,7 @@ document.addEventListener('dblclick',e=>{clearTimeout(S.zt);const sn=e.target.cl
     const end=save=>{sn.contentEditable='false';sn.removeEventListener('keydown',k);sn.removeEventListener('blur',b);const nv=sn.innerHTML.trim();
       if(!save||!nv){sn.innerHTML=before;return}if(nv!==before){S.sections=S.sections.map(x=>x===old?nv:x);S.items.forEach(i=>{if(i.section===old)i.section=nv});if(S.openSecs.delete(old))S.openSecs.add(nv);render();post('api/edit',{section:{from:old,to:nv}});toast('Section renamed')}};
     const k=ev=>{if(ev.key==='Enter'){ev.preventDefault();end(true)}else if(ev.key==='Escape')end(false)},b=()=>end(true);sn.addEventListener('keydown',k);sn.addEventListener('blur',b);return}
-  clearTimeout(S.ct);const el=e.target.closest('[data-ed]')||e.target.closest('.ct h3')?.querySelector('.ttl');if(!el||el.isContentEditable)return;e.preventDefault();
+  clearTimeout(S.ct);if(e.target.closest('#world [data-ed]')&&!e.target.isContentEditable){e.preventDefault();editCard(e);return}const el=e.target.closest('[data-ed]')||e.target.closest('.ct h3')?.querySelector('.ttl');if(!el||el.isContentEditable)return;e.preventDefault();
   const before=el.innerHTML;el.contentEditable='true';el.focus();{const r=document.caretRangeFromPoint?.(e.clientX,e.clientY);const sl=getSelection();sl.removeAllRanges();if(r&&el.contains(r.startContainer)){r.collapse(true);sl.addRange(r)}else{const q=document.createRange();q.selectNodeContents(el);q.collapse(false);sl.addRange(q)}}
   const end=save=>{el.contentEditable='false';el.removeEventListener('keydown',k);el.removeEventListener('blur',b);
     if(!save)el.innerHTML=before;else if(el.innerHTML!==before){const it=S.items.find(i=>i.cid===(el.closest('.gi')||el.closest('.card')).dataset.cid);const f=el.dataset.ed,v=el.innerHTML.replace(/^(<br>|\s|&nbsp;)+|(<br>|\s|&nbsp;)+$/g,'');it[f]=v;if(f==='out')it.what='';(unread(it)&&(S.readLocal.add(it.cid),post('api/state',{cid:stKey(it.cid),new:false}),render()),post('api/edit',f==='out'?{cid:it.cid,out:v,what:''}:{cid:it.cid,[f]:v})).then(r=>r&&toast('Saved'))}};
@@ -470,7 +470,7 @@ addEventListener('keydown',e=>{if(e.key!=='Alt'||e.repeat||e.target.closest?.('i
 function kbList(){const r=[['0','Zoom to the screenshot under the cursor · again: whole canvas'],['Space','Mark read and go to the next'+(FLOW?' step':' issue')+(FLOW?'':'')],['Alt',FLOW?'Flip to the previous screenshot':'Flip to the design reference'],['+ / −','Zoom in / out'],['⌘ + scroll','Zoom at the cursor']];
   if(!FLOW)r.splice(2,0,['← →','Previous / next issue (doesn’t mark read)']);if(FLOW)r.splice(2,0,['→','Next step along the flow (then the next branch)'],['←','Back along the arrows · on a first step: end of the previous flow'],['↑ ↓','Previous / next card in canvas order']);
   r.push(['Delete','Delete the selected '+(FLOW?'step':'issue')+' (one at a time)'],['Esc','Close a popover']);return r.map(([k,t])=>`<div class="kbr"><kbd>${k}</kbd><span>${t}</span></div>`).join('')}
-document.addEventListener('click',e=>{const b=e.target.closest('#kbbtn'),P=document.getElementById('kbpop');if(b){e.stopPropagation();if(P.hidden){P.innerHTML=`<div class="kbh">Shortcuts</div>${kbList()}`;P.hidden=false}else P.hidden=true;return}if(P&&!P.hidden&&!e.target.closest('#kbpop'))P.hidden=true},true);
+document.addEventListener('click',e=>{const b=e.target.closest('#kbbtn'),P=document.getElementById('kbpop');if(b){e.stopPropagation();if(P.hidden||P.dataset.k==='more'){P.innerHTML=`<div class="kbh">Shortcuts</div>${kbList()}`;P.hidden=false}else P.hidden=true;P.dataset.k='';return}if(P&&!P.hidden&&!e.target.closest('#kbpop,#morebtn'))P.hidden=true},true);
 /* custom canvas colour: shorthand expands — f → FFFFFF, f4 → F4F4F4, abc → AABBCC */
 function hexNorm(v){v=String(v||'').trim().replace(/^#/,'');if(!/^[0-9a-f]+$/i.test(v))return null;
   const h=v.length===1?v.repeat(6):v.length===2?v.repeat(3):v.length===3?v.split('').map(c=>c+c).join(''):v.length===6?v:null;return h&&'#'+h.toUpperCase()}
@@ -518,12 +518,15 @@ if(localStorage.qaSbCol==='1')setSbCol(true);
 S.anim=localStorage.qaAnim||'auto';   // screen switch: auto (slide; quick repeats instant) · pan · instant
 
 /* ---- Open app: the live app if it answers, else the repo on its branch (data.app = {url, repo, branch}) */
-{const A=D.app,b=document.getElementById('appbtn');if(b&&A&&(A.url||A.repo)){b.hidden=false;
-  const repoUrl=()=>A.repo?(A.branch?A.repo.replace(/\/$/,'')+(/github\.com/.test(A.repo)?'/tree/':'/-/tree/')+encodeURI(A.branch):A.repo):null;
-  b.title=A.url?`Open the app (${A.url})${A.repo?' · falls back to the repo if it isn’t running':''}`:'Open the repo'+(A.branch?' on '+A.branch:'');
-  b.addEventListener('click',async()=>{const w=window.open('about:blank','_blank');let up=false;
-    if(A.url&&!A.repo)up=true;else if(A.url){try{const c=new AbortController();setTimeout(()=>c.abort(),1500);await fetch(A.url,{mode:'no-cors',signal:c.signal});up=true}catch{}}
-    const to=up?A.url:repoUrl();if(to){w.location=to;if(!up&&A.url)toast('The app isn’t running — opened the repo instead')}else{w.close();toast('The app isn’t running, and no repo is set')}})}}
+/* ---- toolbar links: reference / live build (globe), local build (live canvas only), git branch; the ⋯ menu has the version and every link */
+{const A=D.app||{},P=D.deploy||{},gh=/github\.com/.test(A.repo||''),repoUrl=A.repo?(A.branch?A.repo.replace(/\/$/,'')+(gh?'/tree/':'/-/tree/')+encodeURI(A.branch):A.repo):null;
+  const L=[['refbtn',A.url,FLOW?'App':'Reference build'],['locbtn',VIEW?null:A.local,'Local build'],['gitbtn',repoUrl,(gh?'GitHub':'GitLab')+(A.branch?' · '+A.branch:'')]];
+  L.forEach(([id,u,l])=>{const b=document.getElementById(id);if(!b||!u)return;b.hidden=false;b.title=l+'\n'+u;b.onclick=()=>window.open(u,'_blank','noopener')});
+  document.getElementById('morebtn')?.addEventListener('click',e=>{e.stopPropagation();const K=document.getElementById('kbpop');if(!K.hidden&&K.dataset.k==='more'){K.hidden=true;return}
+    const ver=P.version?(VIEW?`Version v${P.version} · ${esc(P.at)}`:`Last deployed v${P.version} · ${esc(P.at)}`):'Not deployed yet',lk=(l,u)=>`<div class="mrow"><span>${l}</span>${u?`<a href="${esc(u)}" target="_blank" rel="noopener" title="${esc(u)}">${esc(u.replace(/^https?:\/\//,''))}</a>`:'<i>Not set</i>'}</div>`;
+    K.innerHTML=`<div class="kbh">${esc(D.title)}</div><div class="mrow"><span>${ver}</span></div>${lk('Deployed',P.url||(P.version?'':null))}${L.filter(x=>x[1]).map(([,u,l])=>lk(l,u)).join('')}`.replace('<i>Not set</i>',P.version?'<i>Not set</i>':'<i>Not deployed yet</i>');
+    K.dataset.k='more';K.hidden=false});
+  document.addEventListener('click',e=>{const K=document.getElementById('kbpop');if(K.dataset.k==='more'&&!e.target.closest('#kbpop,#morebtn')){K.hidden=true;K.dataset.k=''}})}
 
 /* ---- this canvas claims new Desktop screenshots while it's the one you use (focus / click; refreshed at most every 10 s) */
 {let last=0;const claim=()=>{if(document.visibilityState!=='visible'||S.offline)return;const t=Date.now();if(t-last<10000)return;last=t;fetch(API+'api/active',{method:'POST'}).catch(()=>{})};
@@ -549,3 +552,37 @@ new MutationObserver(()=>requestAnimationFrame(fitPop)).observe(document.getElem
 addEventListener('keydown',e=>{if((e.key!=='Delete'&&e.key!=='Backspace')||e.metaKey||e.ctrlKey||e.altKey||e.repeat)return;if(e.target.closest?.('input,textarea,[contenteditable=true]')||document.querySelector('.cfm'))return;const cid=S.sel;if(!cid||!S.items.some(i=>i.cid===cid))return;e.preventDefault();document.getElementById('menu').dataset.for=cid;menuAct('del')});
 
 if(VIEW){/* view build: only the Screens / Issues list; To-dos, New and Deleted need the server */S.tab='issues';document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.dataset.tab==='issues'))}
+
+// ---- edit a card's title + details as one box (Slack-style): first line is the title, Enter goes to the details
+function caretAt(el,start){const r=document.createRange();r.selectNodeContents(el);r.collapse(!!start);const sl=getSelection();sl.removeAllRanges();sl.addRange(r)}
+function caretOff(el){const sl=getSelection();if(!sl.rangeCount)return -1;const r=sl.getRangeAt(0),q=document.createRange();q.selectNodeContents(el);q.setEnd(r.startContainer,r.startOffset);const d=document.createElement('div');d.appendChild(q.cloneContents());return d.innerHTML.length?d.textContent.length+(d.querySelector('br,img')?1:0):0}
+function editCard(e){const box=e.target.closest('.gi')||e.target.closest('.card'),T=box?.querySelector('.ttl[data-ed]'),F=box?.querySelector('.fix[data-ed]');if(!T||!F)return;
+  const it=S.items.find(i=>i.cid===box.dataset.cid);if(!it)return;const b0=T.innerHTML,f0=F.innerHTML,body=F.closest('.body'),shut=body.classList.contains('shut');body.classList.remove('shut');box.classList.add('editing');
+  T.contentEditable=F.contentEditable='true';const tgt=e.target.closest('.fix')?F:T;tgt.focus();{const r=document.caretRangeFromPoint?.(e.clientX,e.clientY),sl=getSelection();sl.removeAllRanges();if(r&&tgt.contains(r.startContainer)){r.collapse(true);sl.addRange(r)}else caretAt(tgt,false)}
+  let done=false;const clean=h=>h.replace(/^(<br>|\s|&nbsp;)+|(<br>|\s|&nbsp;)+$/g,'').replace(/<div>(.*?)<\/div>/g,'<br>$1');
+  const end=save=>{if(done)return;done=true;T.contentEditable=F.contentEditable='false';box.classList.remove('editing');T.removeEventListener('keydown',kt);F.removeEventListener('keydown',kf);box.removeEventListener('focusout',fo);
+    if(!save){T.innerHTML=b0;F.innerHTML=f0}else{const t=clean(T.innerHTML).replace(/<br>/g,' '),w=clean(F.innerHTML),ch={};if(t!==b0){it.title=t;ch.title=t}if(w!==clean(f0)){it.what=w;ch.what=w}
+      if(Object.keys(ch).length){if(unread(it)){S.readLocal.add(it.cid);post('api/state',{cid:stKey(it.cid),new:false})}post('api/edit',{cid:it.cid,...ch}).then(r=>r&&toast('Saved'));render()}}
+    if(shut&&!it.expanded)body.classList.add('shut');fitAll()};
+  const kt=ev=>{if(ev.key==='Escape'){end(false);return}if(ev.key==='Enter'&&(ev.metaKey||ev.ctrlKey)){ev.preventDefault();end(true);return}
+    if(ev.key==='Enter'){ev.preventDefault();/* split at the caret: the rest of the title becomes the first line of the details */const sl=getSelection(),r=sl.getRangeAt(0);r.deleteContents();const q=document.createRange();q.selectNodeContents(T);q.setStart(r.startContainer,r.startOffset);
+      const d=document.createElement('div');d.appendChild(q.extractContents());const rest=d.innerHTML.replace(/^\s+/,''),has=!!trimHtml(F.innerHTML);T.innerHTML=T.innerHTML.replace(/\s+$/,'');F.innerHTML=rest+(has?'<br>'+F.innerHTML:'');F.focus();caretAt(F,true);return}
+    if(ev.key==='ArrowDown'&&caretOff(T)>=T.textContent.length){ev.preventDefault();F.focus();caretAt(F,true)}};
+  const kf=ev=>{if(ev.key==='Escape'){end(false);return}if(ev.key==='Enter'&&(ev.metaKey||ev.ctrlKey)){ev.preventDefault();end(true);return}
+    if(ev.key==='Enter'&&!ev.shiftKey){ev.preventDefault();const sl=getSelection(),r=sl.getRangeAt(0),q=document.createRange();q.selectNodeContents(F);q.setEnd(r.startContainer,r.startOffset);const d=document.createElement('div');d.appendChild(q.cloneContents());
+      const line=d.innerHTML.split(/<br\s*\/?>/).pop().replace(/<[^>]+>/g,'').replace(/&nbsp;/g,' ').trim();document.execCommand('insertHTML',false,/^[•\-]/.test(line)?'<br>• ':'<br>');return}
+    if((ev.key==='Backspace'||ev.key==='ArrowUp')&&caretOff(F)===0&&!getSelection().toString()){ev.preventDefault();if(ev.key==='ArrowUp'){T.focus();caretAt(T,false);return}
+      const [first,...rest]=F.innerHTML.split(/<br\s*\/?>/),at=T.textContent.length+(first.trim()&&T.textContent&&!/\s$/.test(T.textContent)?1:0);const add=first.replace(/^\s*[•\-]\s*/,'');T.innerHTML=T.innerHTML+(add&&T.textContent&&!/\s$/.test(T.textContent)?' ':'')+add;F.innerHTML=rest.join('<br>');T.focus();
+      const tn=[...T.childNodes].reduce((a,n)=>a||(n.nodeType===3?n:null),null);caretAt(T,false);if(tn&&at<=tn.length){const r=document.createRange();r.setStart(tn,at);r.collapse(true);const sl=getSelection();sl.removeAllRanges();sl.addRange(r)}}};
+  const fo=()=>setTimeout(()=>{if(!box.contains(document.activeElement))end(true)},0);
+  T.addEventListener('keydown',kt);F.addEventListener('keydown',kf);box.addEventListener('focusout',fo)}
+// ---- paste into any text box comes in as plain text (the canvas's own size and colour); copy keeps only basic formatting
+document.addEventListener('paste',e=>{const ce=e.target.closest?.('[contenteditable=true]');if(!ce)return;const t=e.clipboardData?.getData('text/plain');if(t==null||[...(e.clipboardData.items||[])].some(i=>i.type.startsWith('image/'))&&!t)return;
+  e.preventDefault();e.stopImmediatePropagation();document.execCommand('insertHTML',false,esc(t).replace(/\r?\n/g,'<br>'))},true);
+function basicHtml(node){const OK={B:'b',STRONG:'b',I:'i',EM:'i',A:'a',BR:'br',UL:'ul',OL:'ol',LI:'li'};let h='';
+  node.childNodes.forEach(n=>{if(n.nodeType===3){h+=esc(n.textContent);return}if(n.nodeType!==1)return;const c=getComputedStyle?.(n),tag=OK[n.tagName],inner=basicHtml(n);
+    if(n.matches?.('button,svg,img,.snt,.pp,.rd,.dtog,.lacts,.acts,.racts'))return;
+    if(tag==='br')h+='<br>';else if(tag==='a'&&/^https?:/.test(n.getAttribute('href')||''))h+=`<a href="${esc(n.getAttribute('href'))}">${inner}</a>`;else if(tag&&tag!=='a')h+=`<${tag}>${inner}</${tag}>`;
+    else if(/^(DIV|P|H\d)$/.test(n.tagName))h+=(h&&!/<br>$/.test(h)?'<br>':'')+inner;else h+=inner});return h}
+document.addEventListener('copy',e=>{const sl=getSelection();if(!sl.rangeCount||sl.isCollapsed)return;const r=sl.getRangeAt(0);if(!document.getElementById('world')?.contains(r.commonAncestorContainer)&&!document.getElementById('sb')?.contains(r.commonAncestorContainer)&&!document.getElementById('pop')?.contains(r.commonAncestorContainer))return;
+  const d=document.createElement('div');d.appendChild(r.cloneContents());e.clipboardData.setData('text/html',basicHtml(d));e.clipboardData.setData('text/plain',sl.toString());e.preventDefault()});
