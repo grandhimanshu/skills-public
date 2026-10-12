@@ -451,7 +451,7 @@ addEventListener('keydown',e=>{if(e.key!=='Alt'||e.repeat||e.target.closest?.('i
 /* ---- keyboard shortcuts, from the ? button by the zoom controls */
 function kbList(){const r=[['0','Zoom to the screenshot under the cursor · again: whole canvas'],['Space','Mark read and go to the next'+(FLOW?' step':' issue')+(FLOW?'':'')],['Alt',FLOW?'Flip to the previous screenshot':'Flip to the design reference'],['+ / −','Zoom in / out'],['⌘ + scroll','Zoom at the cursor']];
   if(!FLOW)r.splice(2,0,['← →','Previous / next issue (doesn’t mark read)']);if(FLOW)r.splice(2,0,['→','Next step along the flow (then the next branch)'],['←','Back along the arrows · on a first step: end of the previous flow'],['↑ ↓','Previous / next card in canvas order']);
-  r.push(['Esc','Close a popover']);return r.map(([k,t])=>`<div class="kbr"><kbd>${k}</kbd><span>${t}</span></div>`).join('')}
+  r.push(['Delete','Delete the selected '+(FLOW?'step':'issue')+' (one at a time)'],['Esc','Close a popover']);return r.map(([k,t])=>`<div class="kbr"><kbd>${k}</kbd><span>${t}</span></div>`).join('')}
 document.addEventListener('click',e=>{const b=e.target.closest('#kbbtn'),P=document.getElementById('kbpop');if(b){e.stopPropagation();if(P.hidden){P.innerHTML=`<div class="kbh">Shortcuts</div>${kbList()}`;P.hidden=false}else P.hidden=true;return}if(P&&!P.hidden&&!e.target.closest('#kbpop'))P.hidden=true},true);
 /* custom canvas colour: shorthand expands — f → FFFFFF, f4 → F4F4F4, abc → AABBCC */
 function hexNorm(v){v=String(v||'').trim().replace(/^#/,'');if(!/^[0-9a-f]+$/i.test(v))return null;
@@ -509,3 +509,6 @@ document.addEventListener('click',e=>{const dl=e.target.closest('[data-del],[dat
 function fitPop(){const P=document.getElementById('pop');if(!P.classList.contains('open'))return;const h=P.offsetHeight,top=parseFloat(P.style.top)||12,lim=innerHeight-12;if(top+h>lim)P.style.top=Math.max(12,lim-h)+'px'}
 document.addEventListener('input',e=>{if(e.target.closest?.('#pop'))requestAnimationFrame(fitPop)},true);addEventListener('resize',fitPop);
 new MutationObserver(()=>requestAnimationFrame(fitPop)).observe(document.getElementById('pop'),{childList:true,subtree:true});
+
+/* Delete / Backspace: delete the selected issue or step — one at a time, even on a shared screenshot (Undo in the toast) */
+addEventListener('keydown',e=>{if((e.key!=='Delete'&&e.key!=='Backspace')||e.metaKey||e.ctrlKey||e.altKey||e.repeat)return;if(e.target.closest?.('input,textarea,[contenteditable=true]')||document.querySelector('.cfm'))return;const cid=S.sel;if(!cid||!S.items.some(i=>i.cid===cid))return;e.preventDefault();document.getElementById('menu').dataset.for=cid;menuAct('del')});

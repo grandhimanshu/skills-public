@@ -36,7 +36,7 @@ Rebuild after every `flows.json` change; the open page waits until the user stop
 
 - **Steps:** `id` is stable and used by comments, so never change it. Numbers (`n`) are assigned once and never reused.
 - **Edges:** `[from, to, label?]`.
-  - Labels sit horizontally on the arrow, in small text. **Write labels of 4 words or fewer**: the action that moves the user on ("click Save", "invalid input").
+  - Labels sit horizontally on the arrow, in small text. **Keep labels short, about 30 characters**: the action that moves the user on ("click Save", "invalid input"). Longer labels wrap only when they don't fit between the two screens.
   - Branches: give a step several outgoing edges. Steps at the same depth stack in one column.
 - **Flows** are the connected groups of steps, laid out top to bottom in the order of their first step.
 
@@ -48,7 +48,7 @@ Rebuild after every `flows.json` change; the open page waits until the user stop
   - Deleted steps wait in the Deleted tab until the user confirms.
 - **New tab** (there is no Issues tab): steps the user hasn't seen, **including steps whose screenshot changed**. Read state is per screenshot version.
 - **0** zooms to the step nearest the cursor; **0** again shows the whole canvas.
-- **→** walks one whole path to its end, then the next branch; **←** goes back left along the arrows (on a flow's first step, to the last screen of the previous flow) (never sideways to another branch), and → after ← retraces the same branch; **↑ ↓** step through every card in canvas order. Pressing again within 0.7s switches instantly instead of animating, so you can flip between screens to spot the change. **Space** marks the selected step read and moves on, like →. Leaving a flow's end screen plays a soft red ring on it for 0.3s before moving.
+- **→** walks one whole path to its end, then the next branch; **←** goes back left along the arrows (on a flow's first step, to the last screen of the previous flow) (never sideways to another branch), and → after ← retraces the same branch; **↑ ↓** step through every card in canvas order. Pressing again within 0.7s switches instantly instead of animating, so you can flip between screens to spot the change. **Space** marks the selected step read and moves on, like →. Leaving a flow's end screen plays a soft red ring on it for 0.3s before moving. **Delete** removes the selected step (the flow reconnects; Undo).
 - Comments, priority H/M/L, double-click editing, Settings (Numbers, Titles, Canvas background, default #F4F4F4), and the Claude-watching line all work as in design-qa-canvas.
 
 ## Updating a step's screenshot (keep one previous)

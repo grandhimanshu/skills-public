@@ -630,3 +630,5 @@ html.noprio .pp,html.noprio .card .lacts .pp,html.noprio .trow h3 .a.pp,html.nop
 .cap.gi1{position:relative}.cap.gi1 .trow{padding-right:calc(84px * var(--acs,1))}
 .cap.gi1 .racts .a{height:22px;min-width:22px;padding:0 5px;border-radius:6px;font-size:11px;gap:3px;background:#fff;border:1px solid var(--line);box-shadow:0 2px 6px rgba(0,0,0,.10)}.cap.gi1 .racts .a svg{width:12px;height:12px}
 .card:hover .cap.gi1 .racts .hv{visibility:visible}
+/* arrow labels: half size */
+.lane.flow svg .elabel{font-size:5.25px;stroke-width:2px}

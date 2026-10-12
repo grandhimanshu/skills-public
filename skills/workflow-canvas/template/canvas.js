@@ -69,7 +69,10 @@ function flowLayout(){const ids=new Set(S.items.map(i=>i.cid));let E=(D.edges||[
 function drawArrows(){if(!FLOW)return;document.querySelectorAll('.fl').forEach(fl=>{const sv=fl.querySelector('svg.arrows'),z=S.z||1,o=fl.getBoundingClientRect();sv.setAttribute('width',fl.scrollWidth);sv.setAttribute('height',fl.scrollHeight);
   const pt=(id,side)=>{const e=document.querySelector(`#c-${id} .shot,#c-${id} .noshot`);if(!e||!fl.contains(e))return null;const r=e.getBoundingClientRect();return {x:((side?r.right:r.left)-o.left)/z,y:((r.top+r.bottom)/2-o.top)/z}};
   sv.innerHTML=(S.E||[]).map(([a,b,l])=>{const p=pt(a,1),q=pt(b,0);if(!p||!q)return '';const L=16,ax=p.x+6,bx=q.x-L,dx=Math.max(24,(bx-ax)/2),mx=(p.x+q.x)/2,my=(p.y+q.y)/2;
-    return `<path d="M${p.x} ${p.y} L${ax} ${p.y} C${ax+dx} ${p.y} ${bx-dx} ${q.y} ${bx} ${q.y} L${q.x-1} ${q.y}" fill="none" stroke="#8F887E" stroke-width="1.6" stroke-linecap="round"/><path d="M${q.x-11} ${q.y-4.5} L${q.x-1} ${q.y} L${q.x-11} ${q.y+4.5}" fill="none" stroke="#8F887E" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>`+(l?`<text class="elabel" x="${mx}" y="${my-6}" text-anchor="middle">${esc(l)}</text>`:'')}).join('')})}
+    return `<path d="M${p.x} ${p.y} L${ax} ${p.y} C${ax+dx} ${p.y} ${bx-dx} ${q.y} ${bx} ${q.y} L${q.x-1} ${q.y}" fill="none" stroke="#8F887E" stroke-width="1.6" stroke-linecap="round"/><path d="M${q.x-11} ${q.y-4.5} L${q.x-1} ${q.y} L${q.x-11} ${q.y+4.5}" fill="none" stroke="#8F887E" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>`+(l?elabel(l,p,q):'')}).join('')})}
+/* arrow label: small, right-aligned just before the arrowhead (where each arrow is on its own), wrapped only when wider than the gap between the two screens */
+function elabel(l,p,q){const cw=2.9,room=Math.max(40,(q.x-p.x)*.6),max=Math.max(8,Math.floor(room/cw)),words=String(l).split(/\s+/),lines=[];let cur='';words.forEach(w=>{if(cur&&(cur+' '+w).length>max){lines.push(cur);cur=w}else cur=cur?cur+' '+w:w});if(cur)lines.push(cur);
+  const x=q.x-14,y=q.y-4-(lines.length-1)*6.2;return `<text class="elabel" x="${x}" y="${y}" text-anchor="end">${lines.map((t,k)=>`<tspan x="${x}" dy="${k?6.2:0}">${esc(t)}</tspan>`).join('')}</text>`}
 /* issues sharing a screenshot stay together (placed where the first of them ranks), so stepping finishes one screenshot before the next */
 function byScreen(arr){if(FLOW)return arr;const m=new Map();arr.forEach(i=>{const k=i.screen?'s:'+i.screen:'#'+i.cid;(m.get(k)||m.set(k,[]).get(k)).push(i)});return [...m.values()].flat()}
 function ordered(){ // per section, highest priority first; one serial across the canvas
@@ -452,7 +455,7 @@ addEventListener('keydown',e=>{if(e.key!=='Alt'||e.repeat||e.target.closest?.('i
 /* ---- keyboard shortcuts, from the ? button by the zoom controls */
 function kbList(){const r=[['0','Zoom to the screenshot under the cursor · again: whole canvas'],['Space','Mark read and go to the next'+(FLOW?' step':' issue')+(FLOW?'':'')],['Alt',FLOW?'Flip to the previous screenshot':'Flip to the design reference'],['+ / −','Zoom in / out'],['⌘ + scroll','Zoom at the cursor']];
   if(!FLOW)r.splice(2,0,['← →','Previous / next issue (doesn’t mark read)']);if(FLOW)r.splice(2,0,['→','Next step along the flow (then the next branch)'],['←','Back along the arrows · on a first step: end of the previous flow'],['↑ ↓','Previous / next card in canvas order']);
-  r.push(['Esc','Close a popover']);return r.map(([k,t])=>`<div class="kbr"><kbd>${k}</kbd><span>${t}</span></div>`).join('')}
+  r.push(['Delete','Delete the selected '+(FLOW?'step':'issue')+' (one at a time)'],['Esc','Close a popover']);return r.map(([k,t])=>`<div class="kbr"><kbd>${k}</kbd><span>${t}</span></div>`).join('')}
 document.addEventListener('click',e=>{const b=e.target.closest('#kbbtn'),P=document.getElementById('kbpop');if(b){e.stopPropagation();if(P.hidden){P.innerHTML=`<div class="kbh">Shortcuts</div>${kbList()}`;P.hidden=false}else P.hidden=true;return}if(P&&!P.hidden&&!e.target.closest('#kbpop'))P.hidden=true},true);
 /* custom canvas colour: shorthand expands — f → FFFFFF, f4 → F4F4F4, abc → AABBCC */
 function hexNorm(v){v=String(v||'').trim().replace(/^#/,'');if(!/^[0-9a-f]+$/i.test(v))return null;
@@ -527,3 +530,6 @@ document.addEventListener('click',e=>{const dl=e.target.closest('[data-del],[dat
 function fitPop(){const P=document.getElementById('pop');if(!P.classList.contains('open'))return;const h=P.offsetHeight,top=parseFloat(P.style.top)||12,lim=innerHeight-12;if(top+h>lim)P.style.top=Math.max(12,lim-h)+'px'}
 document.addEventListener('input',e=>{if(e.target.closest?.('#pop'))requestAnimationFrame(fitPop)},true);addEventListener('resize',fitPop);
 new MutationObserver(()=>requestAnimationFrame(fitPop)).observe(document.getElementById('pop'),{childList:true,subtree:true});
+
+/* Delete / Backspace: delete the selected issue or step — one at a time, even on a shared screenshot (Undo in the toast) */
+addEventListener('keydown',e=>{if((e.key!=='Delete'&&e.key!=='Backspace')||e.metaKey||e.ctrlKey||e.altKey||e.repeat)return;if(e.target.closest?.('input,textarea,[contenteditable=true]')||document.querySelector('.cfm'))return;const cid=S.sel;if(!cid||!S.items.some(i=>i.cid===cid))return;e.preventDefault();document.getElementById('menu').dataset.for=cid;menuAct('del')});
