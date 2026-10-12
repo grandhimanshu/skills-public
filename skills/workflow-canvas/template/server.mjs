@@ -93,7 +93,7 @@ const server = http.createServer(async (req, res) => {
   if (p === '/api/removed' && req.method === 'GET') return send(res, 200, readJson(REMOVED, {}))
   if (p === '/api/removed' && req.method === 'POST') {
     const b = await readBody(req)
-    if (!req.headers['x-actor'] === 'User' && !(b.removed === true && b.by === 'Claude')) return send(res, 403, { error: 'only the user restores; Claude may only soft-delete with by:"Claude"' })
+    if (req.headers['x-actor'] !== 'User' && !(b.removed === true && b.by === 'Claude')) return send(res, 403, { error: 'only the user restores; Claude may only soft-delete with by:"Claude"' })
     if (!/^[A-Za-z0-9_-]+$/.test(String(b.cid || '')) || typeof b.removed !== 'boolean') return send(res, 400, { error: 'cid and removed required' })
     const d = readJson(REMOVED, {})
     if (b.removed) d[b.cid] = { title: String(b.title || '').slice(0, 200), n: String(b.n || ''), at: now(), by: b.by === 'Claude' ? 'Claude' : 'User' }; else delete d[b.cid]
@@ -101,7 +101,7 @@ const server = http.createServer(async (req, res) => {
   }
 
   if (p === '/api/removed/purge' && req.method === 'POST') {
-    if (!req.headers['x-actor'] === 'User') return send(res, 403, { error: 'only the user deletes for good' })
+    if (req.headers['x-actor'] !== 'User') return send(res, 403, { error: 'only the user deletes for good' })
     const b = await readBody(req), d = readJson(REMOVED, {})
     for (const c of b.cids || []) if (d[c]) d[c].purged = true
     fs.writeFileSync(REMOVED, JSON.stringify(d, null, 2)); return send(res, 200, d)
@@ -137,7 +137,7 @@ const server = http.createServer(async (req, res) => {
   }
 
   if (p === '/api/edit' && req.method === 'POST') {
-    if (!req.headers['x-actor'] === 'User') return send(res, 403, { error: 'only the user edits issues' })
+    if (req.headers['x-actor'] !== 'User') return send(res, 403, { error: 'only the user edits issues' })
     const b = await readBody(req)
     if (b.section && typeof b.section.from === 'string' && typeof b.section.to === 'string' && SAFE(b.section.to)) {
       const all = readJson(EDITS, {}); all.sections = { ...(all.sections || {}), [b.section.from]: b.section.to }
@@ -163,7 +163,7 @@ const server = http.createServer(async (req, res) => {
   // Suggestions: the user accepts (locks) or removes Claude's suggestions. Deterministic — no model involved.
   if (p === '/api/suggestions' && req.method === 'GET') return send(res, 200, readJson(SUGG, {}))
   if (p === '/api/suggestions' && req.method === 'POST') {
-    if (!req.headers['x-actor'] === 'User') return send(res, 403, { error: 'only the user accepts or removes suggestions' })
+    if (req.headers['x-actor'] !== 'User') return send(res, 403, { error: 'only the user accepts or removes suggestions' })
     const b = await readBody(req)
     if (!Array.isArray(b.ids) || !['accepted', 'removed', 'pending'].includes(b.status)) return send(res, 400, { error: 'ids[] and status required' })
     const d = readJson(SUGG, {})
@@ -203,8 +203,14 @@ const server = http.createServer(async (req, res) => {
     const b = await readBody(req), d = readJson(INBOX, { items: [] }), it = d.items.find((x) => x.id === ib[1])
     if (!it) return send(res, 404, { error: 'not found' })
     if (typeof b.processed === 'boolean') it.processed = b.processed
-    for (const k of ['deleted', 'resolved']) if (typeof b[k] === 'boolean') { if (!req.headers['x-actor'] === 'User') return send(res, 403, { error: 'only the user deletes or resolves screenshots' }); it[k] = b[k] }
+    for (const k of ['deleted', 'resolved']) if (typeof b[k] === 'boolean') { if (req.headers['x-actor'] !== 'User') return send(res, 403, { error: 'only the user deletes or resolves screenshots' }); it[k] = b[k] }
     if (b.issue) it.issue = String(b.issue)
+    // filed as an issue/step: its threads move onto that card and the screenshot item closes — one thread to resolve, not two
+    if (it.processed && it.issue && !it.merged) {
+      const db = load(), to = 'card:' + it.issue
+      db.comments.filter((c) => c.target === 'card:' + it.id).forEach((c) => { c.movedFrom = c.target; c.target = to; c.thread.push({ by: 'Claude', text: `Screenshot ${it.id} is now ${it.issue}; this thread moved with it.`, at: now(), moved: { from: 'card:' + it.id, to } }) })
+      save(db); it.merged = true; it.resolved = true
+    }
     fs.writeFileSync(INBOX, JSON.stringify(d, null, 2)); return send(res, 200, it)
   }
 
@@ -247,7 +253,7 @@ const server = http.createServer(async (req, res) => {
     if (!c && !archived) return send(res, 404, { error: 'not found' })
     if (m[2] === 'flags' && typeof b.resolved === 'boolean') {
       // Resolving is user-only: the canvas UI sends X-Actor: User; Claude never does.
-      if (!req.headers['x-actor'] === 'User') return send(res, 403, { error: 'only the user can resolve or reopen' })
+      if (req.headers['x-actor'] !== 'User') return send(res, 403, { error: 'only the user can resolve or reopen' })
       if (b.resolved && c) { db.comments = db.comments.filter((x) => x.id !== c.id); c.resolved = true; c.resolvedAt = now(); ar.comments.push(c) }
       if (!b.resolved && archived) { ar.comments = ar.comments.filter((x) => x.id !== archived.id); archived.resolved = false; delete archived.resolvedAt; archived.claudeDone = false; archived.status = 'todo'; db.comments.push(archived) }
       save(db); saveA(ar); return send(res, 200, c || archived)

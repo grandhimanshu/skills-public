@@ -17,3 +17,4 @@ Tools: this skill's `scripts/` (`watch-inbox.py`, `comments.sh`).
 - **Pasted screenshots** (`pasted: true`, the user pressed Cmd+V in this canvas) were put here on purpose: skip the scope check, just decide where they go.
 - **Check scope first** (Desktop screenshots). Before turning a screenshot into an issue or step, check that it belongs to this canvas: the same app or URL, and the same flow or area this canvas covers. If it clearly doesn't, or you're not sure, don't file it: `comments.sh return <INid>`. That puts it back on the Desktop under its original name, and the other running canvases may take it; the canvases that returned it never take it again. Only file it when you're sure it's in scope.
 
+- **One thread per screenshot:** when you mark a screenshot done with `comments.sh inbox-done <INid> <code>`, the server moves its threads onto that issue or step and closes the screenshot item, so the user resolves the conversation once, on the card.
