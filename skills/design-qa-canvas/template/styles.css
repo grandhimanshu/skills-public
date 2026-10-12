@@ -645,3 +645,5 @@ html.view .pp,html.view .card .lacts .pp,html.view .trow h3 .a.pp,html.view .row
 #world .editing .fix[contenteditable=true],#world .editing .ttl[contenteditable=true]{box-shadow:none!important;background:none!important}
 #world .editing h3:has([contenteditable=true]){box-shadow:none!important;background:none!important}
 #world .card.editing .cap,#world .gi.editing{box-shadow:0 0 0 calc(2px * var(--inv,1)) var(--blue),0 0 0 calc(5px * var(--inv,1)) rgba(47,111,235,.18);background:#fff;border-radius:calc(3px * var(--inv,1))}
+/* screenshot actions show only while hovering the screenshot itself, not the text under it (the comment count stays) */
+.card .shotw:not(:hover) .acts .a:not(.cmi.has),.card .shotw:not(:hover) .acts .hv,.card .shotw:not(:hover) .lacts .exp2{visibility:hidden}
