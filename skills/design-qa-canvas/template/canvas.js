@@ -504,3 +504,8 @@ document.addEventListener('paste',e=>{if(e.target.closest?.('input,textarea,[con
 /* delete buttons get their own early listener (the general click handler was catching these first) */
 document.addEventListener('click',e=>{const dl=e.target.closest('[data-del],[data-deltop]');if(!dl)return;e.stopPropagation();e.preventDefault();
   const cid=dl.dataset.del||dl.closest('.card')?.querySelector('.gi')?.dataset.cid;if(!cid)return;document.getElementById('menu').dataset.for=cid;menuAct('del')},true);
+
+/* popover stays on screen as it grows (typing, new replies): it slides up while there's room above; beyond the screen height its thread list scrolls inside */
+function fitPop(){const P=document.getElementById('pop');if(!P.classList.contains('open'))return;const h=P.offsetHeight,top=parseFloat(P.style.top)||12,lim=innerHeight-12;if(top+h>lim)P.style.top=Math.max(12,lim-h)+'px'}
+document.addEventListener('input',e=>{if(e.target.closest?.('#pop'))requestAnimationFrame(fitPop)},true);addEventListener('resize',fitPop);
+new MutationObserver(()=>requestAnimationFrame(fitPop)).observe(document.getElementById('pop'),{childList:true,subtree:true});
