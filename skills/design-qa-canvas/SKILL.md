@@ -68,6 +68,16 @@ Rules:
   - Medium: misleading or inconsistent UI.
   - Low: polish (the default).
 
+## Publishing a read-only view (e.g. Vercel)
+
+```bash
+python3 build.py issues.json index.html --view
+```
+- Builds a page for viewers with no server or watchers: no comments, read/unread, priorities, deleting, adding issues, editing or paste. Only the Issues list shows.
+- The user's live changes (edited titles, deletions, priorities, accepted suggestions, added issues) are baked in at build time, so rebuild after changes.
+- Deploy `index.html` together with the screenshot folder the image paths point to.
+- Every build records each screenshot's size and a tiny pixelated preview (needs Pillow: `pip3 install pillow`), so cards keep their place while the real images load.
+
 ## What the user can do (so you can answer questions; don't re-implement any of it)
 
 - **Canvas:**

@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Build canvas.html from issues.json (same folder).
 
-    python3 build.py [issues.json] [canvas.html]
+    python3 build.py [issues.json] [canvas.html]          # live canvas, with server.mjs
+    python3 build.py issues.json view.html --view        # read-only page for viewers (e.g. Vercel)
 
 issues.json is the single source of truth. Each issue gets a unique, stable number `n`
 (assigned on first build and written back, never renumbered). Card ids (comments, priorities,
@@ -14,6 +15,8 @@ by canvas.js at load, so a rebuild never loses it.
 import json, sys, pathlib
 
 HERE = pathlib.Path(__file__).parent
+VIEW = '--view' in sys.argv          # read-only: the server's state is baked in, no comments, no editing
+sys.argv = [a for a in sys.argv if a != '--view']
 src = pathlib.Path(sys.argv[1]) if len(sys.argv) > 1 else HERE / 'issues.json'
 out = HERE / (sys.argv[2] if len(sys.argv) > 2 else 'canvas.html')
 cfg = json.load(open(src, encoding='utf-8'))
@@ -54,6 +57,27 @@ else:
           'issues': [{'cid': str(it.get('code') or it['n']), 'n': it['n'], 'section': it['section'], 'kind': it['kind'],
                     'title': it['title'], 'what': it.get('what', ''), 'out': it.get('out', ''), 'img': it.get('img'),
                     'ts': it.get('ts', ''), 'hl': bool(it.get('highlight')), 'sugg': it.get('sugg', []), 'screen': it.get('screen', '')} for it in issues]}
+if VIEW:   # bake in what the server would answer, so titles, notes, deletions and priorities match the live canvas
+    rd = lambda n, d: json.load(open(HERE / n, encoding='utf-8')) if (HERE / n).exists() else d
+    data['view'] = True
+    data['snap'] = {'edit': rd('canvas-edits.json', {}), 'removed': rd('canvas-removed.json', {}), 'priorities': rd('canvas-priorities.json', {}),
+                    'suggestions': rd('canvas-suggestions.json', {}), 'added': rd('canvas-added.json', {'items': []}),
+                    'state': {'seen': [d['cid'] + ('@' + d['v'] if d.get('v') else '') for d in (data.get('steps') or data['issues'])]}}
+def imgmeta(img):   # [w, h, tiny pixelated preview]: the card keeps its size while the screenshot loads, nothing jumps
+    f = HERE / img
+    try:
+        from PIL import Image
+        import base64, io
+        with Image.open(f) as im:
+            w, h = im.size; t = im.convert('RGB'); t.thumbnail((24, 24 * h // max(w, 1) or 1))
+            buf = io.BytesIO(); t.save(buf, 'PNG', optimize=True)
+            return [w, h, 'data:image/png;base64,' + base64.b64encode(buf.getvalue()).decode()]
+    except Exception:
+        return None   # no Pillow or no file: the page falls back to sizing on load
+data['imgs'] = {}
+for d in (data.get('steps') or data['issues']):
+    for im in (d.get('img'), (d.get('prev') or {}).get('img')):
+        if im and im not in data['imgs'] and (m := imgmeta(im)): data['imgs'][im] = m
 data['app'] = cfg.get('app')   # optional {url, repo, branch}: the Open app button
 blob = json.dumps(data, ensure_ascii=False).replace('</', '<\\/')
 
@@ -73,6 +97,6 @@ page = f'''<!doctype html>
 out.write_text(page, encoding='utf-8')
 
 state = HERE / 'canvas-state.json'      # first build: everything present counts as read
-if not state.exists():
+if not VIEW and not state.exists():
     json.dump({'seen': [d['cid'] + ('@' + d['v'] if d.get('v') else '') for d in (data.get('steps') or data['issues'])]}, open(state, 'w'), indent=2)
 print(f'built {out.name}: ' + (f"{len(data['steps'])} steps" if FLOW else f'{len(issues)} issues in {len(sections)} sections') + f' -> http://localhost:{PORT}')

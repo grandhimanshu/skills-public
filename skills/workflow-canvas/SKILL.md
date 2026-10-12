@@ -29,16 +29,39 @@ Rebuild after every `flows.json` change; the open page waits until the user stop
 ```json
 { "title": "Order journey", "port": 4300,
   "flows": { "start": "Create an order" },               // optional: name a flow by its first step
-  "steps": [ { "id": "start", "title": "Open New order", "note": "What this step shows / what's wrong", "img": "shots/s1.png" },
+  "steps": [ { "id": "start", "title": "Open New order", "note": "• The ✏️ goes next to Patient, on open orders only.<br>• A closed order shows no pencil.", "img": "shots/s1.png" },
              { "id": "form",  "title": "Fill the form", "img": "shots/s2.png", "prev": { "img": "shots/s2-old.png", "label": "Oct 6" } } ],
   "edges": [ ["start", "form", "click New order"] ] }
 ```
 
 - **Steps:** `id` is stable and used by comments, so never change it. Numbers (`n`) are assigned once and never reused.
+- **Titles are the presenting cues.** The user presents from the canvas, and viewers read the titles, not the notes. Make each title say what happens on that screen in a few words ("Save waits for reason + tick", "Fails again: banner is back"), so a viewer gets the step from the title alone. The note is only for the detail a viewer needs when asked; many steps need one bullet or none.
+- **Notes:** write each note as the handoff a developer gets: short, plain bullets (`• …`, joined with `<br>`: notes are HTML, so a newline collapses), about what the user sees and the rule behind it.
+  - Say it the way you'd tell a teammate: "Save stays disabled until a field has changed, a reason is chosen and the box is ticked."
+  - No change logs ("CHANGED …", "NEW …"), dates, file paths, component names or reasoning about the decision. The previous screenshot (`prev`) already records that something changed.
+  - Quote on-screen copy exactly, in quotes.
 - **Edges:** `[from, to, label?]`.
   - Labels sit horizontally on the arrow, in small text. **Keep labels short, about 30 characters**: the action that moves the user on ("click Save", "invalid input"). Longer labels wrap only when they don't fit between the two screens.
   - Branches: give a step several outgoing edges. Steps at the same depth stack in one column.
 - **Flows** are the connected groups of steps, laid out top to bottom in the order of their first step.
+
+### Keep flows linear, don't tangle them
+Arrows that cross between flows are hard to follow while presenting. So:
+- **One main flow shows every core screen in a straight line**, start to finish (e.g. pencil → sheet → reason → saved → hover).
+- **Other entry points are their own flow** (their own blue heading), not arrows into the middle of the main flow. If "PA: patient not found" and "Coverage: no match" both open the same sheet, don't draw both into it: each is its own short flow that ends at its own screen, and the main flow already shows the sheet. Name the flow after the entry point.
+- **Connect flows only when the link is the point**, e.g. a branch that only makes sense as a continuation. Then use one arrow, not several.
+- **Branch sparingly.** A side outcome (e.g. "assignees notified") can branch off the main flow; keep it to one level.
+- Before building, check: does any arrow go backwards, cross another flow, or point into a screen that already has an arrow in? If so, make it a separate flow instead.
+
+## Publishing a read-only view (e.g. Vercel)
+
+```bash
+python3 build.py flows.json index.html --view
+```
+- Builds a page for viewers with no server or watchers: no comments, read/unread, priorities, deleting, adding, renaming or paste. Only the Screens list shows.
+- What the user changed on the live canvas (renamed titles, notes, deleted steps, priorities) is baked in at build time, so rebuild after changes.
+- Deploy `index.html` together with `shots/` (the folder the image paths point to). Nothing else is needed.
+- Every build (live or view) records each screenshot's size and a tiny pixelated preview (needs Pillow: `pip3 install pillow`), so cards keep their place while the real images load.
 
 ## What the user can do (don't re-implement)
 
@@ -58,7 +81,7 @@ When the screen changes, put the new image in `img` and the old one in `prev` (*
 - If nothing changed visually, leave the step alone. No `prev`, no new version.
 - **Keep it read when you're sure it needs no review:** if the user already reviewed this exact change (here, or the same change on another step) and you're really confident, keep the new screenshot read: after rebuilding, `comments.sh seen <cid> <img>`. When in doubt, leave it New.
 - The step then shows up in **New** for the user.
-- Dates in `prev.label` and in the step's "CHANGED …" note: just the date (`Oct 9`) when it differs from the previous version's. **On the same date, add the time** (`Oct 9, 16:58`), never a counter like `Oct 9 (3rd)`.
+- Dates in `prev.label`: just the date (`Oct 9`) when it differs from the previous version's. **On the same date, add the time** (`Oct 9, 16:58`), never a counter like `Oct 9 (3rd)`.
 
 ## New screenshots from the Desktop (flow mode; see `agent-references/screenshot-watcher.md`)
 

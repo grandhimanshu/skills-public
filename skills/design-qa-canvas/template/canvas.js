@@ -1,10 +1,23 @@
 
 const D=JSON.parse(document.getElementById('qa-data').textContent),PORT=D.port||4200,Q=new URLSearchParams(location.search);
+// View build (build.py --view): read-only for viewers, e.g. published to Vercel. No server or watchers there, so
+// the page answers its own api/ reads from the snapshot baked in at build time, and every edit control is off.
+const VIEW=!!D.view;
+if(VIEW){const SN=D.snap||{},_f=window.fetch.bind(window),ok=b=>Promise.resolve(new Response(JSON.stringify(b),{status:200,headers:{'Content-Type':'application/json'}}));
+  window.fetch=(u,o)=>{const m=String(u).match(/(?:^|\/)api\/([a-z/]+)/);if(!m)return _f(u,o);const k=m[1];
+    return ok(k==='version'?{page:'view'}:k==='watchers'?{comments:{state:'on'},screenshots:{state:'on'}}:k in SN?SN[k]:k==='comments'?{comments:[]}:/^(inbox|added)$/.test(k)?{items:[]}:{})};
+  document.documentElement.classList.add('view');
+  const RO='[data-open],[data-task],[data-read],[data-readall],[data-bulk],[data-prio],[data-menu],[data-mi],[data-del],[data-deltop],[data-delall],[data-delall-shot],[data-idel],[data-ires],[data-tres],[data-tdel],[data-addiss],[data-sg],[data-sgok],[data-sgask],[data-sgtop],[data-sgbar],[data-acc],[data-restore],[data-rdel],[data-rdelall],[data-copywatch],[data-copymsg],[data-ed],[data-pick],[data-pres],#sortbtn';
+  const stop=e=>{e.preventDefault();e.stopImmediatePropagation()};
+  addEventListener('click',e=>{if(e.target.closest?.(RO))stop(e)},true);
+  addEventListener('dblclick',e=>{if(e.target.closest?.('[data-secname],[data-ed],.ct h3,#list .rt[data-rted]'))stop(e)},true);
+  addEventListener('keydown',e=>{if(e.key==='Delete'||e.key==='Backspace')stop(e)},true);
+  addEventListener('paste',stop,true);addEventListener('drop',stop,true)}
 // opened from disk (file://) -> talk to the local server directly; ?asfile=1 / ?offline=1 preview those states
 const ASFILE=location.protocol==='file:'||Q.has('asfile'),API=location.protocol==='file:'?`http://localhost:${PORT}/`:'';
 const ic=(n,s='')=>`<svg class="i" ${s}><use href="#i-${n}"/></svg>`;
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-function srvState(){const b=document.getElementById('srv');if(!b)return;const off=S.offline||Q.has('offline');
+function srvState(){const b=document.getElementById('srv');if(!b||VIEW)return;const off=S.offline||Q.has('offline');
   b.innerHTML=off?`<div class="srv warn"><b>${ASFILE?'Nothing is running on localhost:'+PORT:'The canvas server has stopped'}</b><span>Comments you write are kept in this browser and sent when it's back.</span><button data-copymsg>Copy message for Claude</button></div>`
    :ASFILE?`<div class="srv ok"><span class="dot"></span>Opened from disk · server live on localhost:${PORT}<a href="http://localhost:${PORT}/" target="_blank" rel="noopener">Open there ↗</a></div>`:'';
   b.hidden=!b.innerHTML;document.getElementById('srvToast').hidden=!(off&&S.touchedComments)}
@@ -172,7 +185,8 @@ function movedNote(i){const m=S.comments.filter(c=>c.movedFrom==='card:'+i.cid&&
 function issueRow(i){return `<div class="trow"><h3><span class="snt">${num(i)}</span><button class="a pp ${pr(i)}" data-prio="${i.cid}" title="${PL[pr(i)]} priority — click to change">${PS[pr(i)]}</button>${unread(i)?`<button class="a rd" data-read="${i.cid}" title="Unread — click to mark read"><i></i></button>`:''}<span class="ttl" data-ed="title">${i.title}</span>${hasDet(i)?`<button class="dtog ${i.expanded?'up':''}" data-more="${i.cid}" title="Details">Details ${ic('chev')}</button>`:''}</h3></div>${movedNote(i)}
     <div class="body ${i.expanded?'':'shut'}" data-body="${i.cid}"><div class="fix" data-ed="out">${[i.out,i.what].map(trimHtml).filter(Boolean).join('<br><br>')}</div></div>
     ${i.sugg.length?`<div class="sugg"><div class="sh">Claude’s suggestions · ${i.sugg.length}<button class="rjall" data-sgtop="${i.cid}">Reject all</button></div><ul>${i.sugg.map((s,k)=>`<li><input type="checkbox" data-sg="${i.cid}:${k}" aria-label="Select suggestion"><span style="flex:1">${s.replace(/^<b>[^<]*<\/b>\s*/,'')}</span></li>`).join('')}</ul><div class="sg-bar" data-sgbar="${i.cid}"></div></div>`:''}`}
-function shotBox(f,acts,one,extraL){return `<div class="shotw">${f.img?`<img class="shot" src="${esc(f.img)}" draggable="false" decoding="async">`:'<div class="noshot">No screenshot</div>'}<div class="lacts">${one?`<button class="a pp ${pr(f)}" data-prio="${f.cid}" title="${PL[pr(f)]} priority — click to change">${PS[pr(f)]}</button>`:''}${one&&unread(f)?`<button class="a rd" data-read="${f.cid}" title="Unread — click to mark read"><i></i></button>`:''}${extraL||''}${f.img?`<button class="a exp2" data-exp="${esc(f.img)}" title="Open full size">${ic('expand')}</button>`:''}</div>${f.prev?`<span class="prevtag">${f.prev.ref?'Design':'Before'}${f.prev.label&&!/^before$/i.test(f.prev.label)?' · '+esc(f.prev.label):''}</span>`:''}${acts||''}</div>`}
+const LOADED=new Set();   // screenshots already loaded once: re-renders skip the preview
+function shotBox(f,acts,one,extraL){return `<div class="shotw">${f.img?`${(m=>m&&!LOADED.has(f.img)?`<img class="shot lq" src="${esc(f.img)}" width="${m[0]}" height="${m[1]}" style="aspect-ratio:${m[0]}/${m[1]};background-image:url(${m[2]})" onload="this.classList.remove('lq');LOADED.add(this.getAttribute('src'))" draggable="false" decoding="async">`:`<img class="shot" src="${esc(f.img)}" draggable="false" decoding="async">`)(D.imgs?.[f.img])}`:'<div class="noshot">No screenshot</div>'}<div class="lacts">${one?`<button class="a pp ${pr(f)}" data-prio="${f.cid}" title="${PL[pr(f)]} priority — click to change">${PS[pr(f)]}</button>`:''}${one&&unread(f)?`<button class="a rd" data-read="${f.cid}" title="Unread — click to mark read"><i></i></button>`:''}${extraL||''}${f.img?`<button class="a exp2" data-exp="${esc(f.img)}" title="Open full size">${ic('expand')}</button>`:''}</div>${f.prev?`<span class="prevtag">${f.prev.ref?'Design':'Before'}${f.prev.label&&!/^before$/i.test(f.prev.label)?' · '+esc(f.prev.label):''}</span>`:''}${acts||''}</div>`}
 /* shared card, screenshot level: read marks every issue on it read; chat opens the first issue's thread */
 function grpRead(g){const ur=g.filter(unread),rank={high:0,med:1,low:2},hi=g.map(pr).sort((a,b)=>rank[a]-rank[b])[0],tops=g.filter(i=>pr(i)===hi);
   /* screenshot-level priority = the highest among its issues; changing it moves every issue at that level */
@@ -512,3 +526,5 @@ new MutationObserver(()=>requestAnimationFrame(fitPop)).observe(document.getElem
 
 /* Delete / Backspace: delete the selected issue or step — one at a time, even on a shared screenshot (Undo in the toast) */
 addEventListener('keydown',e=>{if((e.key!=='Delete'&&e.key!=='Backspace')||e.metaKey||e.ctrlKey||e.altKey||e.repeat)return;if(e.target.closest?.('input,textarea,[contenteditable=true]')||document.querySelector('.cfm'))return;const cid=S.sel;if(!cid||!S.items.some(i=>i.cid===cid))return;e.preventDefault();document.getElementById('menu').dataset.for=cid;menuAct('del')});
+
+if(VIEW){/* view build: only the Screens / Issues list; To-dos, New and Deleted need the server */S.tab='issues';document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.dataset.tab==='issues'))}
