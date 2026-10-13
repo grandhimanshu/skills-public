@@ -17,6 +17,8 @@ How the words on a card read: title and details. (What to report at all, screens
 - Don't use internal names, routes or IDs in titles.
 - Avoid repeating the title in the details.
 - Don't narrate what you did to find it.
+- Don't describe the screenshot back, or write what you can't tell from it; ask in the thread instead.
+- Write the user's point as the issue itself, not "Reported by …: …".
 - Don't pile on record IDs, dates and steps as proof.
 - Don't copy meeting status ("Dev to check", "Planned", "<name> to confirm").
 
