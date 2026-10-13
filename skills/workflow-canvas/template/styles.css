@@ -652,3 +652,5 @@ html.view .pp,html.view .card .lacts .pp,html.view .trow h3 .a.pp,html.view .row
 /* screenshot actions show only while hovering the screenshot itself, not the text under it (the comment count stays) */
 .card .shotw:not(:hover) .acts .a:not(.cmi.has),.card .shotw:not(:hover) .acts .hv,.card .shotw:not(:hover) .lacts .exp2{visibility:hidden}
 .card .body.shut[hidden]{display:block;margin:0!important;padding:0!important}   /* collapsed but findable with ⌘F */
+/* issue actions show only while hovering the issue text, not the screenshot above it */
+.card .cap.gi1:not(:hover) .racts .hv,.card .gi:not(:hover) .racts .hv{visibility:hidden}
