@@ -107,6 +107,10 @@ const server = http.createServer(async (req, res) => {
     fs.writeFileSync(REMOVED, JSON.stringify(d, null, 2))
     // deleted for good by the user: its threads go too (open and resolved)
     const gone = new Set((b.cids || []).map((c) => 'card:' + c)), db = load(), ar = loadA()
+    // gone from the canvas, kept for context: canvas-purged.json holds what was deleted for good and its threads (never shown, never worked on)
+    const PURGED = path.join(ROOT, 'canvas-purged.json'), pg = readJson(PURGED, { items: [] })
+    for (const c of b.cids || []) pg.items.push({ cid: c, ...(d[c] || {}), purgedAt: now(), threads: [...db.comments, ...ar.comments].filter((x) => x.target === 'card:' + c) })
+    fs.writeFileSync(PURGED, JSON.stringify(pg, null, 2))
     db.comments = db.comments.filter((c) => !gone.has(c.target)); ar.comments = ar.comments.filter((c) => !gone.has(c.target)); save(db); saveA(ar)
     return send(res, 200, d)
   }

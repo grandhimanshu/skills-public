@@ -15,3 +15,4 @@ Tools: this skill's `scripts/` (`watch-comments.py`, `comments.sh`). Set `PORT` 
 6. **Verify** with `comments.sh list` and by checking the rebuilt page before you say a task is done.
 
 Replies are short and factual: what you changed, where, and anything you couldn't verify.
+- **Threads on deleted issues or steps:** reply if the user asks something there, but don't act on the deleted item itself; it's out of scope (see SKILL.md).

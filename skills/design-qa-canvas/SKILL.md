@@ -69,6 +69,9 @@ Rules:
   - Medium: misleading or inconsistent UI.
   - Low: polish (the default).
 
+## Deleted issues are out of scope
+Issues in the Deleted section (`canvas-removed.json`) and ones deleted for good (`canvas-purged.json`, which keeps their details and threads) aren't part of the work: leave them out of edits, filing, counts and reports. Read them only as context, for example to avoid raising again something the user deleted, or to see why it went.
+
 ## Deploying (optional)
 Only when the user asks to deploy or publish, or to set up the toolbar links: read `agent-references/deploy.md`.
 
