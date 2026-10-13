@@ -15,4 +15,4 @@ python3 build.py issues.json index.html --view
 - Every build records each screenshot's size and a tiny pixelated preview (Pillow, optional), so cards keep their place while images load.
 
 ## Toolbar links (`"app"` in issues.json)
-`{"url": reference build under review, "repo": …, "branch": …, "dir": local repo folder, "localPort"?: …}`. Globe = `url`, git = repo on the branch, the local build only on the live canvas. Hovering shows the exact address; the ⋯ menu lists them all. `scripts/app-links.py <canvas folder>` refreshes branch and local link from `dir`; the watchers run it when they re-arm.
+`{"url": reference build under review, "repo": …, "branch": …, "dir": local repo folder, "localPort"?: …}`. All links sit in the ⋯ menu: Build under review (`url`), Branch (repo on `branch`), Local build (live canvas only), Published canvas (`deploy.url`). `scripts/app-links.py <canvas folder>` refreshes branch and local link from `dir`; the watchers run it when they re-arm.

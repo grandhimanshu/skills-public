@@ -15,4 +15,4 @@ python3 build.py flows.json index.html --view
 - Every build records each screenshot's size and a tiny pixelated preview (Pillow, optional), so cards keep their place while images load.
 
 ## Toolbar links (`"app"` in flows.json)
-`{"repo": …, "branch": …, "dir": local repo folder, "localPort"?: …, "url"?: hosted app}`. Git = repo on the branch (ships in the view), local build = live canvas only, globe = `url` if set. Hovering shows the exact address; the ⋯ menu lists them all. `scripts/app-links.py <canvas folder>` refreshes branch and local link from `dir`; the watchers run it when they re-arm.
+`{"repo": …, "branch": …, "dir": local repo folder, "localPort"?: …, "url"?: hosted app}`. All links sit in the ⋯ menu: Branch (repo on `branch`, ships in the view), Local build (live canvas only), Live app (`url`, if set), Published canvas (`deploy.url`). `scripts/app-links.py <canvas folder>` refreshes branch and local link from `dir`; the watchers run it when they re-arm.

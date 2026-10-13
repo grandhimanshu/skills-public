@@ -522,11 +522,11 @@ S.anim=localStorage.qaAnim||'auto';   // screen switch: auto (slide; quick repea
 /* ---- Open app: the live app if it answers, else the repo on its branch (data.app = {url, repo, branch}) */
 /* ---- toolbar links: reference / live build (globe), local build (live canvas only), git branch; the ⋯ menu has the version and every link */
 {const A=D.app||{},P=D.deploy||{},gh=/github\.com/.test(A.repo||''),repoUrl=A.repo?(A.branch?A.repo.replace(/\/$/,'')+(gh?'/tree/':'/-/tree/')+encodeURI(A.branch):A.repo):null;
-  const L=[['refbtn',A.url,FLOW?'App':'Reference build'],['locbtn',VIEW?null:A.local,'Local build'],['gitbtn',repoUrl,(gh?'GitHub':'GitLab')+(A.branch?' · '+A.branch:'')]];
-  L.forEach(([id,u,l])=>{const b=document.getElementById(id);if(!b||!u)return;b.hidden=false;b.title=l+'\n'+u;b.onclick=()=>window.open(u,'_blank','noopener')});
+  const L=[['refbtn',A.url,FLOW?'Live app':'Build under review'],['locbtn',VIEW?null:A.local,'Local build'],['gitbtn',repoUrl,A.branch?'Branch · '+A.branch:(gh?'GitHub':'GitLab')]];
+  /* links live in the ⋯ menu only; the toolbar stays quiet */L.forEach(([id,u,l])=>{const b=document.getElementById(id);if(!b||!u||1)return;b.hidden=false;b.title=l+'\n'+u;b.onclick=()=>window.open(u,'_blank','noopener')});
   document.getElementById('morebtn')?.addEventListener('click',e=>{e.stopPropagation();const K=document.getElementById('kbpop');if(!K.hidden&&K.dataset.k==='more'){K.hidden=true;return}
     const ver=P.version?(VIEW?`Version v${P.version} · ${esc(P.at)}`:`Last deployed v${P.version} · ${esc(P.at)}`):'Not deployed yet',lk=(l,u)=>`<div class="mrow"><span>${l}</span>${u?`<a href="${esc(u)}" target="_blank" rel="noopener" title="${esc(u)}">${esc(u.replace(/^https?:\/\//,''))}</a>`:'<i>Not set</i>'}</div>`;
-    K.innerHTML=`<div class="kbh">${esc(D.title)}</div><div class="mrow"><span>${ver}</span></div>${lk('Deployed',P.url||(P.version?'':null))}${L.filter(x=>x[1]).map(([,u,l])=>lk(l,u)).join('')}`.replace('<i>Not set</i>',P.version?'<i>Not set</i>':'<i>Not deployed yet</i>');
+    K.innerHTML=`<div class="kbh">${esc(D.title)}</div><div class="mrow"><span>${ver}</span></div>${lk('Published canvas',P.url||(P.version?'':null))}${L.filter(x=>x[1]).map(([,u,l])=>lk(l,u)).join('')}`.replace('<i>Not set</i>',P.version?'<i>Not set</i>':'<i>Not deployed yet</i>');
     K.dataset.k='more';K.hidden=false});
   document.addEventListener('click',e=>{const K=document.getElementById('kbpop');if(K.dataset.k==='more'&&!e.target.closest('#kbpop,#morebtn')){K.hidden=true;K.dataset.k=''}})}
 
