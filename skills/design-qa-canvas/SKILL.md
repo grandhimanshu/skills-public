@@ -44,7 +44,7 @@ nohup node server.mjs 4200 > server.log 2>&1 &   # http://localhost:4200 — one
 | `img`, `ts` | screenshot path relative to the canvas; video time |
 | `code` | `S1…` from screenshots, `A1…` from live audits. Otherwise the id is the number |
 | `highlight` | flags the person in `highlight.chip` |
-| `sugg` | `[["S1-a","text"],…]`: options for the user to keep or drop |
+| `sugg` | `[["S1-a","text"],…]`: options for the user to keep or drop, mainly gaps against the design reference (see `agent-references/writing-issues.md`) |
 | `screen` | optional key: issues with the same `screen` show as **one card** (at most 4 per card; more continue on a second card with the same screenshot), with the screenshot once and the issues listed under it. Use it only for the **same screen in the same state**; two states of one page stay separate cards. The user can Move an issue to its own card or Combine cards (⋯ menu) |
 | `ref` | optional path to the design reference screenshot for this issue (`refLabel` optional). The card's image button and **Alt** flip between the screenshot and the reference. If you replace an issue's screenshot, date it as the workflow skill says: just the date, or date + time on the same day, never a counter. |
 
