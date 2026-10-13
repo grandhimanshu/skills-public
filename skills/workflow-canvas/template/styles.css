@@ -384,7 +384,7 @@ details.more .w{font-size:12.5px;color:#3C3731;margin-top:6px}
 /* empty details: nothing shown, but a quiet "Add details…" target on hover/selection so it can be filled again */
 .body .fix:empty{min-height:0}
 .card:hover .body .fix:empty,.card.sel .body .fix:empty{min-height:1.4em}
-.card:hover .body .fix:empty::before,.card.sel .body .fix:empty::before{content:"Add details…";color:var(--faint)}
+
 .body .fix[contenteditable=true]:empty::before{content:"";}
 
 /* side pane: a single comment button — count lives inside it */

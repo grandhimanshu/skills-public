@@ -104,7 +104,11 @@ const server = http.createServer(async (req, res) => {
     if (req.headers['x-actor'] !== 'User') return send(res, 403, { error: 'only the user deletes for good' })
     const b = await readBody(req), d = readJson(REMOVED, {})
     for (const c of b.cids || []) if (d[c]) d[c].purged = true
-    fs.writeFileSync(REMOVED, JSON.stringify(d, null, 2)); return send(res, 200, d)
+    fs.writeFileSync(REMOVED, JSON.stringify(d, null, 2))
+    // deleted for good by the user: its threads go too (open and resolved)
+    const gone = new Set((b.cids || []).map((c) => 'card:' + c)), db = load(), ar = loadA()
+    db.comments = db.comments.filter((c) => !gone.has(c.target)); ar.comments = ar.comments.filter((c) => !gone.has(c.target)); save(db); saveA(ar)
+    return send(res, 200, d)
   }
 
   // Claude's watchers report in: {name:'comments'|'screenshots', state:'on'|'off'}. A watcher that stops heartbeating for 30 s counts as off.

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Emit one line per NEW screenshot in the canvas inbox (the server moves new Desktop screenshots there). Run under Monitor.
+"""Emit one line per NEW screenshot in the canvas inbox (the server copies new Desktop screenshots there; the Desktop file stays). Run under Monitor.
 Usage: watch-inbox.py [port=4200].  On each event: read the image, add an issue (code S<next>) to issues.json / the generator,
 rebuild, then `comments.sh inbox-done <INid> <code>`. Do not ask the user to drop screenshots anywhere else."""
 import json, sys, time, signal, atexit, urllib.request

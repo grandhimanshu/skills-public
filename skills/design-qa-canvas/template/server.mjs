@@ -18,7 +18,6 @@ const DESKTOP = process.env.DESKTOP_DIR || path.join(os.homedir(), 'Desktop')
 // Several canvases may run at once: only the one the user used last takes new Desktop screenshots (shared across servers)
 const ACTIVE = path.join(os.homedir(), '.claude', 'design-qa-active.json')
 // Screenshots a canvas's watcher found out of scope go back to the Desktop; listed here so the other canvases may take them (never the ones that returned them)
-const RETURNED = path.join(os.homedir(), '.claude', 'design-qa-returned.json')
 const WATCH_DESKTOP = process.env.DESKTOP_WATCH !== '0'
 const PAGE = process.env.CANVAS_PAGE || 'canvas.html'
 const EDITS = path.join(ROOT, 'canvas-edits.json')
@@ -104,7 +103,11 @@ const server = http.createServer(async (req, res) => {
     if (req.headers['x-actor'] !== 'User') return send(res, 403, { error: 'only the user deletes for good' })
     const b = await readBody(req), d = readJson(REMOVED, {})
     for (const c of b.cids || []) if (d[c]) d[c].purged = true
-    fs.writeFileSync(REMOVED, JSON.stringify(d, null, 2)); return send(res, 200, d)
+    fs.writeFileSync(REMOVED, JSON.stringify(d, null, 2))
+    // deleted for good by the user: its threads go too (open and resolved)
+    const gone = new Set((b.cids || []).map((c) => 'card:' + c)), db = load(), ar = loadA()
+    db.comments = db.comments.filter((c) => !gone.has(c.target)); ar.comments = ar.comments.filter((c) => !gone.has(c.target)); save(db); saveA(ar)
+    return send(res, 200, d)
   }
 
   // Claude's watchers report in: {name:'comments'|'screenshots', state:'on'|'off'}. A watcher that stops heartbeating for 30 s counts as off.
@@ -186,16 +189,13 @@ const server = http.createServer(async (req, res) => {
     const it = { id: 'IN' + k, file: 'screenshots/inbox/' + file, at: now(), processed: false, pasted: true }
     d.items.push(it); fs.writeFileSync(INBOX, JSON.stringify(d, null, 2)); console.log('inbox + (pasted)', it.id); return send(res, 200, it)
   }
-  // Out of scope for this canvas: put it back on the Desktop under its original name (Claude may do this)
-  const rt = p.match(/^\/api\/inbox\/([^/]+)\/return$/)
-  if (rt && req.method === 'POST') {
-    const d = readJson(INBOX, { items: [] }), it = d.items.find((x) => x.id === rt[1])
-    if (!it || it.processed) return send(res, 404, { error: 'no waiting screenshot ' + rt[1] })
-    const name = it.orig || path.basename(it.file), to = path.join(DESKTOP, name)
-    try { fs.renameSync(path.join(ROOT, it.file), to) } catch (e) { return send(res, 500, { error: 'could not move it back: ' + e.message }) }
-    const r = readJson(RETURNED, {}); r[name] = { by: [...new Set([...(r[name]?.by || []), PORT])], at: now() }
-    try { fs.mkdirSync(path.dirname(RETURNED), { recursive: true }); fs.writeFileSync(RETURNED, JSON.stringify(r, null, 2)) } catch {}
-    d.items = d.items.filter((x) => x.id !== it.id); fs.writeFileSync(INBOX, JSON.stringify(d, null, 2)); return send(res, 200, { ok: true, returned: name })
+  // Not relevant to this canvas (Claude decides after looking at it): drop this canvas's copy. The Desktop file is never touched.
+  const dc = p.match(/^\/api\/inbox\/([^/]+)\/discard$/)
+  if (dc && req.method === 'POST') {
+    const d = readJson(INBOX, { items: [] }), it = d.items.find((x) => x.id === dc[1])
+    if (!it || it.processed || it.pasted) return send(res, 404, { error: 'no waiting screenshot ' + dc[1] })
+    try { fs.unlinkSync(path.join(ROOT, it.file)) } catch {}
+    d.items = d.items.filter((x) => x.id !== it.id); fs.writeFileSync(INBOX, JSON.stringify(d, null, 2)); return send(res, 200, { ok: true, discarded: it.id })
   }
   if (p === '/api/inbox' && req.method === 'GET') return send(res, 200, readJson(INBOX, { items: [] }))
   const ib = p.match(/^\/api\/inbox\/([^/]+)$/)
@@ -279,27 +279,27 @@ const server = http.createServer(async (req, res) => {
   })
 })
 
-// --- Desktop watcher: moves screenshots taken AFTER the server started into screenshots/inbox/ -------------------------------
+// --- Desktop watcher: COPIES screenshots taken AFTER the server started into screenshots/inbox/ (the Desktop file stays, so every running canvas gets its own copy) ---
 const started = Date.now() - 2000
+const SEEN = path.join(ROOT, 'canvas-inbox-seen.json')                // 'name|mtime' of every Desktop screenshot already copied (so a discarded one is not copied again)
 if (WATCH_DESKTOP) setInterval(() => {
-  const act = readJson(ACTIVE, null), mine = act && Number(act.port) === Number(PORT), ret = readJson(RETURNED, {})
   let names = []; try { names = fs.readdirSync(DESKTOP) } catch { return }
+  const seen = new Set(readJson(SEEN, [])); let changed = false
   for (const n of names) {
     if (!/^(Screenshot|Screen Shot).*\.png$/.test(n)) continue
     const from = path.join(DESKTOP, n); let st; try { st = fs.statSync(from) } catch { continue }
-    const back = ret[n]
-    if (back) { if ((back.by || []).map(Number).includes(Number(PORT))) continue }          // returned by another canvas: any canvas that hasn't turned it down may take it
-    else { if (!mine) continue                                                              // new screenshots: only the canvas in use (none claimed yet = stay on the Desktop)
-      if (st.mtimeMs < started || Date.now() - st.mtimeMs < 700) continue }       // ignore old files; let the write finish
+    if (st.mtimeMs < started || Date.now() - st.mtimeMs < 700) continue          // ignore old files; let the write finish
+    const key = n + '|' + Math.round(st.mtimeMs)
+    if (seen.has(key)) continue
     const d = readJson(INBOX, { items: [] })
     const k = d.items.reduce((m, x) => Math.max(m, Number(String(x.id).slice(2)) || 0), 0) + 1
     const dir = path.join(ROOT, 'screenshots', 'inbox'); fs.mkdirSync(dir, { recursive: true })
     const stamp = new Date(st.mtimeMs).toISOString().replace(/[-:T]/g, '').slice(0, 14)
     const file = `IN${k}-${stamp}.png`
-    try { fs.renameSync(from, path.join(dir, file)) } catch { try { fs.copyFileSync(from, path.join(dir, file)); fs.unlinkSync(from) } catch { continue } }
+    try { fs.copyFileSync(from, path.join(dir, file)) } catch { continue }
     d.items.push({ id: 'IN' + k, file: 'screenshots/inbox/' + file, orig: n, at: new Date().toISOString(), processed: false })
-    fs.writeFileSync(INBOX, JSON.stringify(d, null, 2)); console.log('inbox +', 'IN' + k, n)
+    fs.writeFileSync(INBOX, JSON.stringify(d, null, 2)); seen.add(key); changed = true; console.log('inbox +', 'IN' + k, n)
   }
+  if (changed) fs.writeFileSync(SEEN, JSON.stringify([...seen]))
 }, 2500)
-
 server.listen(PORT, () => console.log(`design-qa-canvas on http://localhost:${PORT}  (comments: ${path.basename(STORE)})`))

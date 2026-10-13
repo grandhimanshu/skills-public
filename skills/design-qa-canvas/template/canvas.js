@@ -130,7 +130,7 @@ function render(){
     /* one list, three sections (always shown); the chips jump to a section and light up as you scroll */
     const nres=(S.resolved||[]).length,secs=[['done','Completed',done.length],['todo','In progress',todo.length],['resolved','Resolved',nres]];
     const ndone=S.comments.filter(c=>!c.resolved&&st(c)==='done').length;
-    const sec=(k,l,n,body,empty,extra='')=>{const shut=k==='resolved'&&!S.resOpen&&n;/* Resolved starts collapsed */return `<div class="ibsec ${shut?'shut':''}" data-ibsec="${k}"><div class="ibh" ${k==='resolved'&&n?'data-resopen':''}>${k==='resolved'&&n?ic('chev'):''}<span>${l}</span><span class="n">${n}</span>${extra}</div>${shut?'':n?body:`<div class="ihint">${empty}</div>`}</div>`};
+    const sec=(k,l,n,body,empty,extra='')=>{const shut=n&&(S.ibShut?S.ibShut.has(k):k==='resolved'&&!S.resOpen);/* each section collapses; Resolved starts collapsed */return `<div class="ibsec ${shut?'shut':''}" data-ibsec="${k}"><div class="ibh" ${n?`data-ibtog="${k}"`:''}>${n?ic('chev'):''}<span>${l}</span><span class="n">${n}</span>${extra}</div>${shut?'':n?body:`<div class="ihint">${empty}</div>`}</div>`};
     L.innerHTML=`<div class="subtabs">${secs.map(([k,l,n])=>`<button class="subtab ${(S.sub||'done')===k?'on':''}" data-sub="${k}">${l} <span class="c">${n}</span></button>`).join('')}</div>`+
       sec('done','Completed',done.length,done.map(x=>x.h).join(''),'Nothing waiting for you to check.',ndone?`<button class="chip" data-bulk="resolve">Resolve all · ${ndone}</button>`:'')+
       sec('todo','In progress',todo.length,todo.map(x=>x.h).join(''),'Nothing queued. Comments and new screenshots show up here.')+
@@ -218,8 +218,8 @@ document.addEventListener('click',e=>{
   const tre=e.target.closest('[data-tres],[data-tdel]');if(tre){const id=tre.dataset.tres||tre.dataset.tdel,k=S.comments.findIndex(c=>c.id===id),ti=[...document.querySelectorAll('#list .task')].indexOf(tre.closest('.task')),[gone]=S.comments.splice(k,1);render();
     markReadT(gone.target);popAfterResolve(gone.target);if(tre.dataset.tres)openNextTask(ti);post(`api/comments/${gone.id}/flags`,{resolved:true});toast('Resolved — thread cleared',()=>{S.comments.splice(k,0,gone);render();post(`api/comments/${gone.id}/flags`,{resolved:false})});return}
   const ire=e.target.closest('[data-ires]');if(ire){document.getElementById('pop').classList.remove('open');S.popT=null;const k=S.inbox.findIndex(i=>i.id===ire.dataset.ires),[gone]=S.inbox.splice(k,1);const tc=S.comments.filter(c=>c.target==='card:'+gone.id);S.comments=S.comments.filter(c=>c.target!=='card:'+gone.id);render();post('api/inbox/'+gone.id,{resolved:true});tc.forEach(c=>post(`api/comments/${c.id}/flags`,{resolved:true}));toast('Resolved',()=>{S.inbox.splice(k,0,gone);S.comments.push(...tc);render();post('api/inbox/'+gone.id,{resolved:false});tc.forEach(c=>post(`api/comments/${c.id}/flags`,{resolved:false}))});return}
-  const idl=e.target.closest('[data-idel]');if(idl){const k=S.inbox.findIndex(i=>i.id===idl.dataset.idel),[gone]=S.inbox.splice(k,1);render();post('api/inbox/'+gone.id,{deleted:true});
-    toast('Screenshot deleted',()=>{S.inbox.splice(k,0,gone);render();post('api/inbox/'+gone.id,{deleted:false})});return}
+  const idl=e.target.closest('[data-idel]');if(idl){const k=S.inbox.findIndex(i=>i.id===idl.dataset.idel),[gone]=S.inbox.splice(k,1);render();post('api/inbox/'+gone.id,{deleted:true});const pt=setTimeout(()=>{post('api/removed/purge',{cids:[gone.id]});S.comments=S.comments.filter(c=>c.target!=='card:'+gone.id);render()},10000);
+    toast('Screenshot deleted',()=>{clearTimeout(pt);S.inbox.splice(k,0,gone);render();post('api/inbox/'+gone.id,{deleted:false})});return}
   const tk=!e.target.closest('[data-tres],[data-ires],[data-tdel],[data-idel],[data-open],[data-prio]')&&e.target.closest('[data-task]');if(tk){const t=tk.dataset.task,id=t.replace(/^card:/,'');if(t.startsWith('card:')&&document.getElementById('c-'+id)){select(id);goTo(id)}S.popT=t;openPop(t,tk);return}
   const gt=e.target.closest('[data-goto]');if(gt){const id=gt.dataset.goto;if(!document.getElementById('c-'+id)){S.openOnly=false;S.fp.clear();S.fk.clear();S.fh=false;render()}select(id);goTo(id);return}
   if(e.target.closest('[data-delall]')){const g=S.deleted;S.deleted=[];render();let t=setTimeout(()=>post('api/removed/purge',{cids:g.map(i=>i.cid)}),10000);toast(`Deleted ${g.length} for good`,()=>{clearTimeout(t);S.deleted=g;render()});return}
@@ -479,7 +479,7 @@ document.addEventListener('click',async e=>{const b=e.target.closest('[data-addi
   let scr=src.screen;if(!scr){scr='scr-'+src.cid;src.screen=scr;post('api/edit',{cid:src.cid,screen:scr})}
   const n=Math.max(0,...S.items.concat(S.deleted||[]).map(i=>+i.n||0))+1;
   const r=await post('api/added',{section:src.section,img:src.img,screen:scr,v:src.v,n,title:'New issue'});if(!r){toast('Couldn’t add the issue');return}
-  const it=S.mk?S.mk(r):{...r,sugg:[],sids:[]};S.items.push(it);S.readLocal.add(it.cid);render();select(it.cid);
+  const it=S.mk?S.mk(r):{...r,sugg:[],sids:[]};S.items.push(it);S.readLocal.add(it.cid);post('api/state',{cid:stKey(it.cid),new:false});/* you added it: it starts read */render();select(it.cid);
   requestAnimationFrame(()=>{const t=document.querySelector(`#c-${it.cid} .ttl`);if(t){const q=t.getBoundingClientRect();t.dispatchEvent(new MouseEvent('dblclick',{bubbles:true,clientX:q.left+2,clientY:q.top+q.height/2}));const sel=getSelection(),rg=document.createRange();rg.selectNodeContents(t);sel.removeAllRanges();sel.addRange(rg)}})},true);
 function zeroKey(){if(S.zoomedTo){S.zoomedTo=null;fit();return}
   const x=S.mx??innerWidth/2,y=S.my??innerHeight/2;let best=null,bd=Infinity;
@@ -572,3 +572,6 @@ document.addEventListener('copy',e=>{const sl=getSelection();if(!sl.rangeCount||
 function endRipple(cid){const q=()=>document.getElementById('c-'+cid)?.closest('.card')?.querySelector('.shot,.noshot');if(!q())return;const o=document.createElement('div');o.className='endrip';VP.append(o);
   /* a soft ring spreading from the end screen's centre; re-pinned to it on every paint */
   const V=VP.getBoundingClientRect(),f=S.ripF=()=>{const el=q();if(!el)return;const q0=el.getBoundingClientRect(),l=Math.max(q0.left,V.left),t=Math.max(q0.top,V.top),rr=Math.min(q0.right,V.right),bb=Math.min(q0.bottom,V.bottom);/* centre of the part you can see */o.style.left=(l+rr)/2-V.left+'px';o.style.top=(t+bb)/2-V.top+'px';o.style.setProperty('--d',Math.max(160,Math.min(rr-l,bb-t))*.9+'px')};f();setTimeout(()=>{o.remove();if(S.ripF===f)S.ripF=null},850)}
+
+document.addEventListener('click',e=>{const h=e.target.closest('[data-ibtog]');if(!h||e.target.closest('button'))return;e.stopImmediatePropagation();const k=h.dataset.ibtog;
+  S.ibShut=S.ibShut||new Set(S.resOpen?[]:['resolved']);S.ibShut.has(k)?S.ibShut.delete(k):S.ibShut.add(k);if(k==='resolved')S.resOpen=!S.ibShut.has(k);render()},true);
