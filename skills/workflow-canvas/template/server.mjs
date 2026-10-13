@@ -222,7 +222,8 @@ const server = http.createServer(async (req, res) => {
     const b = await readBody(req)
     if (!b.target || !String(b.text || '').trim()) return send(res, 400, { error: 'target and text required' })
     const db = load()
-    const c = { id: uid(), target: String(b.target), title: String(b.title || ''), createdAt: now(), claudeDone: false, status: 'todo', resolved: false,
+    let tgt = String(b.target); { const mi = tgt.match(/^card:(IN\d+)$/), it = mi && readJson(INBOX, { items: [] }).items.find((x) => x.id === mi[1]); if (it && it.processed && it.issue) tgt = "card:" + it.issue }   // screenshot already filed: the comment goes to its issue
+    const c = { id: uid(), target: tgt, title: String(b.title || ''), createdAt: now(), claudeDone: false, status: 'todo', resolved: false,
       thread: [{ by: author(b.by), text: String(b.text).trim(), at: now() }] }
     db.comments.push(c); save(db); return send(res, 200, c)
   }
