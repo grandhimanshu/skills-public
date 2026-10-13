@@ -76,6 +76,9 @@ for it in issues:
     if it['section'] not in sections: sections.append(it['section'])
 json.dump(cfg, open(src, 'w', encoding='utf-8'), indent=2, ensure_ascii=False)
 
+refOf, refLb = {}, {}   # a design reference on one issue of a shared screenshot serves the whole card
+for it in issues:
+    if it.get('ref') and it.get('screen'): refOf.setdefault(it['screen'], it['ref']); refLb.setdefault(it['screen'], it.get('refLabel', ''))
 if FLOW:
     data = {'mode': 'flow', 'title': cfg.get('title', 'Flow'), 'port': PORT, 'highlight': None, 'sections': [],
             'flowNames': cfg.get('flows', {}), 'edges': cfg.get('edges', []), 'issues': [],
@@ -85,7 +88,8 @@ else:
   data = {'title': cfg.get('title', 'Design QA'), 'port': PORT, 'highlight': hl, 'sections': sections,
           'issues': [{'cid': str(it.get('code') or it['n']), 'n': it['n'], 'section': it['section'], 'kind': it['kind'],
                     'title': it['title'], 'what': it.get('what', ''), 'img': it.get('img'),
-                    'ts': it.get('ts', ''), 'hl': bool(it.get('highlight')), 'sugg': it.get('sugg', []), 'screen': it.get('screen', '')} for it in issues]}
+                    'ts': it.get('ts', ''), 'hl': bool(it.get('highlight')), 'sugg': it.get('sugg', []), 'screen': it.get('screen', ''),
+                    'ref': it.get('ref') or refOf.get(it.get('screen') or '\0'), 'refLabel': it.get('refLabel') or refLb.get(it.get('screen') or '\0', '')} for it in issues]}
 if VIEW:   # bake in what the server would answer, so titles, notes, deletions and priorities match the live canvas
     rd = lambda n, d: json.load(open(HERE / n, encoding='utf-8')) if (HERE / n).exists() else d
     data['view'] = True
@@ -105,7 +109,7 @@ def imgmeta(img):   # [w, h, tiny pixelated preview]: the card keeps its size wh
         return None   # no Pillow or no file: the page falls back to sizing on load
 data['imgs'] = {}
 for d in (data.get('steps') or data['issues']):
-    for im in (d.get('img'), (d.get('prev') or {}).get('img')):
+    for im in (d.get('img'), (d.get('prev') or {}).get('img'), d.get('ref')):
         if im and im not in data['imgs'] and (m := imgmeta(im)): data['imgs'][im] = m
 if FLOW: json.dump(vers, open(VERS, 'w'))
 if VIEW and FLOW:   # viewers see the current state only
