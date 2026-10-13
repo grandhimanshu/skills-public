@@ -15,4 +15,4 @@ python3 build.py issues.json index.html --view
 - Every build records each screenshot's size and a tiny pixelated preview (Pillow, optional), so cards keep their place while images load.
 
 ## Toolbar links (`"app"` in issues.json)
-`{"url": reference build under review, "repo": …, "branch": …, "dir": local repo folder, "localPort"?: …}`. All links sit in the ⋯ menu: Build under review (`url`), Branch (repo on `branch`), Local build (live canvas only), Published canvas (`deploy.url`). `scripts/app-links.py <canvas folder>` refreshes branch and local link from `dir`; the watchers run it when they re-arm.
+`{"url": reference build under review, "repo": …, "branch": …, "dir": local repo folder, "localPort"?: …}`. `"design"`: design references the build is compared against, any number, each a URL or `{"label": "Figma", "url": …}` (a Figma file, a design branch, any page). All links sit in the ⋯ menu, design references included: Build under review (`url`), Branch (repo on `branch`), Local build (live canvas only), Published canvas (`deploy.url`). `scripts/app-links.py <canvas folder>` refreshes branch and local link from `dir`; the watchers run it when they re-arm.

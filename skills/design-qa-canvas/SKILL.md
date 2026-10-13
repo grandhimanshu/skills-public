@@ -49,7 +49,7 @@ nohup node server.mjs 4200 > server.log 2>&1 &   # http://localhost:4200 — one
 | `ref` | optional path to the design reference screenshot for this issue (`refLabel` optional). The card's image button and **Alt** flip between the screenshot and the reference. If you replace an issue's screenshot, date it as the workflow skill says: just the date, or date + time on the same day, never a counter. |
 
 Rules:
-- **Compare against the design first. That is the job.** Before writing any issue, find the reference: a Figma file, a design/demo repo or a signed-off build. **If you don't know which one, ask** ("Which design should I compare against, Figma or <repo>?").
+- **Compare against the design first. That is the job.** Before writing any issue, find the reference: a Figma file, a design/demo repo or a signed-off build. **If you don't know which one, ask** ("Which design should I compare against, Figma or <repo>?"). Record each one in `app.design` (any number: Figma, a branch, any URL) so it shows as a Design reference in the ⋯ menu.
   - Put the build's screenshot and the design's screenshot of the same screen side by side.
   - Most issues should be `gap` (the build differs from the design) and cite where in the design.
   - If the build matches the design, there is usually no issue. You may still report an **obvious** problem the design has too (clearly broken or wrong for the user). Keep these few, and label them as a note for the design.
