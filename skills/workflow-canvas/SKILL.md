@@ -22,6 +22,8 @@ python3 build.py flows.json canvas.html
 nohup node server.mjs 4300 > server.log 2>&1 &     # http://localhost:4300
 ```
 
+The first build with a page name (`python3 build.py <data> <page>.html`) is remembered in `canvas-page.txt`; after that a plain `python3 build.py` rebuilds the same page the server shows.
+
 Rebuild after every `flows.json` change; the open page waits until the user stops typing, then reloads.
 
 ## `flows.json`

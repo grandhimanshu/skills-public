@@ -17,8 +17,10 @@ import json, sys, pathlib
 HERE = pathlib.Path(__file__).parent
 VIEW = '--view' in sys.argv          # read-only: the server's state is baked in, no comments, no editing
 sys.argv = [a for a in sys.argv if a != '--view']
-src = pathlib.Path(sys.argv[1]) if len(sys.argv) > 1 else HERE / 'issues.json'
-out = HERE / (sys.argv[2] if len(sys.argv) > 2 else 'canvas.html')
+src = pathlib.Path(sys.argv[1]) if len(sys.argv) > 1 else HERE / ('issues.json' if (HERE / 'issues.json').exists() else 'flows.json')
+PAGE = HERE / 'canvas-page.txt'   # the page the server shows: a later plain `python3 build.py` writes the same file
+out = HERE / (sys.argv[2] if len(sys.argv) > 2 else (PAGE.read_text().strip() if PAGE.exists() else 'canvas.html'))
+if len(sys.argv) > 2 and not VIEW: PAGE.write_text(sys.argv[2])
 cfg = json.load(open(src, encoding='utf-8'))
 KINDS = {'gap', 'ux', 'dec', 'later', 'ctx'}
 FLOW = 'steps' in cfg                # workflow-canvas: {steps:[{id,title,note,img,prev?}], edges:[[from,to]], flows?:{startId:name}}

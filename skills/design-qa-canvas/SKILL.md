@@ -26,6 +26,8 @@ python3 build.py                      # -> canvas.html. Re-run after every issue
 nohup node server.mjs 4200 > server.log 2>&1 &   # http://localhost:4200 — one port per canvas
 ```
 
+The first build with a page name (`python3 build.py <data> <page>.html`) is remembered in `canvas-page.txt`; after that a plain `python3 build.py` rebuilds the same page the server shows.
+
 - **Don't restart the server casually**; the user sees "server stopped". Rebuilds need no restart; only `server.mjs` edits do.
 - If the desktop app's preview tool keeps stopping it, keep it detached (`nohup … &`).
 - The server watches the Desktop for new `Screenshot*.png` and **copies** each into its inbox (the Desktop file stays, so every running canvas gets its own copy; set `DESKTOP_WATCH=0` to turn this off, or `DESKTOP_DIR=…` to watch a different folder). Claude drops the copies that clearly don't belong to this canvas (see `agent-references/screenshot-watcher.md`).
