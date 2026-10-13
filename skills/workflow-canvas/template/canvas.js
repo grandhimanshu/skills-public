@@ -594,4 +594,6 @@ document.addEventListener('click',e=>{const h=e.target.closest('[data-ibtog]');i
 
 // ⌘F finds collapsed details too (hidden="until-found"): a match opens that card and brings it into view
 document.addEventListener('beforematch',e=>{const b=e.target.closest?.('[data-body]');if(!b)return;const cid=b.dataset.body;requestAnimationFrame(()=>{select(cid);goTo(cid,true)})},true);
-VP.addEventListener('scroll',()=>{if(VP.scrollTop||VP.scrollLeft){VP.scrollTop=0;VP.scrollLeft=0}});   /* the canvas pans by transform; find-in-page must not scroll it */
+VP.addEventListener('scroll',()=>{if(!VP.scrollTop&&!VP.scrollLeft)return;/* find-in-page scrolled the canvas to a match (it centres it): take the card under the centre, undo the scroll, pan there our way */
+  const v=VP.getBoundingClientRect(),el=document.elementFromPoint(v.left+v.width/2,v.top+v.height/2),c=el?.closest?.('.gi')||el?.closest?.('.card');VP.scrollTop=0;VP.scrollLeft=0;
+  const cid=c?.dataset.cid||c?.querySelector('.gi')?.dataset.cid;if(cid&&S.items.some(i=>i.cid===cid))requestAnimationFrame(()=>{select(cid);goTo(cid,true)})});
