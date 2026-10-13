@@ -42,7 +42,11 @@ How the words on a card read: title and details. (What to report at all, screens
 
 ## Suggestions (`sugg`)
 
-Suggestions are options the user keeps or drops, so they're worth adding only when they're likely to be kept.
+Suggestions are optional: options the user keeps or drops. Use them by confidence:
+- **High confidence** (the gap is plain against the reference): write it as the issue itself, in the title (and details if needed), not as a suggestion.
+- **Medium confidence** (likely a gap, but the user should confirm): a suggestion.
+- **Low confidence:** leave it out, or ask in the thread.
+
 
 - **Lead with the design reference.** Compare the screenshot with the reference (Figma, a design branch, a signed-off build) and suggest the differences: layout, spacing, alignment, component, type, colour, an element that's missing or extra. Say where in the reference. If the card has no reference yet, ask for one in its thread first.
 - **Follow the user's lens.** Read what the user wrote on this card and on other cards, and suggest more of the same kind. They review the build against the design: what's there that shouldn't be, what looks or sits differently.
