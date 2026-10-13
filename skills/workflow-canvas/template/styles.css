@@ -641,7 +641,6 @@ html.view .pp,html.view .card .lacts .pp,html.view .trow h3 .a.pp,html.view .row
 @keyframes lqp{to{filter:brightness(1.06)}}
 /* combined title + details editing on a card; empty title shows a quiet prompt */
 #world .ttl[data-ed]:empty::before{content:'Add title';color:var(--muted);font-weight:400}
-#world .fix[contenteditable=true]:empty::before{content:'Add details';color:var(--muted)}
 #world .editing .body.shut{display:block}
 #list .rt:empty::before,.task .rt:empty::before{content:'Untitled';color:var(--muted);font-weight:400}
 [contenteditable=true]{outline:none}

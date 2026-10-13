@@ -40,8 +40,9 @@ async function load(){
     const what=(e.what??i.what??'');return {...i,screen:e.screen!==undefined?e.screen:(i.screen||''),section:ren[i.section]||i.section,title:e.title??i.title,out:'',
       what:acc.length&&!e.what?(what?what+'<br>':'')+acc.join('<br>'):what,sugg:(i.sugg||[]).filter(([id])=>!sg[id]).map(([,t])=>t),sids:(i.sugg||[]).filter(([id])=>!sg[id]).map(([id])=>id),...(!FLOW&&i.ref?{prev:{img:i.ref,label:i.refLabel||'',ref:true}}:{})}};
   if(FLOW){D.issues=D.steps}else if(ad?.items?.length){/* issues the user added by hand */D.issues=D.issues.concat(ad.items.filter(a=>!D.issues.some(i=>i.cid===a.cid)))}
-  S.mk=mk;
-  S.items=D.issues.filter(i=>!rm[i.cid]).map(mk);S.deleted=D.issues.filter(i=>rm[i.cid]&&!rm[i.cid].purged).map(mk);
+  const mkT=i=>{const o=mk(i);if(!trimHtml(o.title)&&trimHtml(o.what)){/* no title but details: show the first line as the title */const [a,...r]=o.what.split(/<br\s*\/?>/);o.title=a.replace(/^\s*[•\-]\s*/,'').trim();o.what=r.join('<br>')}return o};
+  S.mk=mkT;
+  S.items=D.issues.filter(i=>!rm[i.cid]).map(mkT);S.deleted=D.issues.filter(i=>rm[i.cid]&&!rm[i.cid].purged).map(mkT);
   if(Q.has('offline'))S.offline=true;S.prio=p;S.seen=new Set(stt.seen||[]);S.readLocal=new Set();S.comments=c.comments||[];S.inbox=(inb.items||[]).filter(x=>!x.deleted&&!x.resolved);
   if(FLOW)flowLayout();S._c=JSON.stringify(S.comments);S.openSecs=new Set(S.sections);render();fit();srvState();flushOutbox();
 }
@@ -541,7 +542,7 @@ function editCard(e){const box=e.target.closest('.gi')||e.target.closest('.card'
   T.contentEditable=F.contentEditable='true';const tgt=e.target.closest('.fix')?F:T;tgt.focus();{const r=document.caretRangeFromPoint?.(e.clientX,e.clientY),sl=getSelection();sl.removeAllRanges();if(r&&tgt.contains(r.startContainer)){r.collapse(true);sl.addRange(r)}else caretAt(tgt,false)}
   let done=false;const clean=h=>h.replace(/^(<br>|\s|&nbsp;)+|(<br>|\s|&nbsp;)+$/g,'').replace(/<div>(.*?)<\/div>/g,'<br>$1');
   const end=save=>{if(done)return;done=true;T.contentEditable=F.contentEditable='false';box.classList.remove('editing');T.removeEventListener('keydown',kt);F.removeEventListener('keydown',kf);box.removeEventListener('focusout',fo);
-    if(!save){T.innerHTML=b0;F.innerHTML=f0}else{const t=clean(T.innerHTML).replace(/<br>/g,' '),w=clean(F.innerHTML),ch={};if(t!==b0){it.title=t;ch.title=t}if(w!==clean(f0)){it.what=w;ch.what=w}
+    if(!save){T.innerHTML=b0;F.innerHTML=f0}else{let t=clean(T.innerHTML).replace(/<br>/g,' '),w=clean(F.innerHTML);const ch={};if(!trimHtml(t)&&trimHtml(w)){/* no title but details: the first line becomes the title */const [a,...r]=w.split(/<br\s*\/?>/);t=a.replace(/^\s*[•\-]\s*/,'').trim();w=r.join('<br>').replace(/^(<br>|\s)+/,'');F.innerHTML=w;T.innerHTML=t}if(t!==b0){it.title=t;ch.title=t}if(w!==clean(f0)||w!==it.what){if(w!==it.what){it.what=w;ch.what=w}}
       if(Object.keys(ch).length){if(unread(it)){S.readLocal.add(it.cid);post('api/state',{cid:stKey(it.cid),new:false})}post('api/edit',{cid:it.cid,...ch}).then(r=>r&&toast('Saved'));render()}}
     if(shut&&!it.expanded)body.classList.add('shut');fitAll()};
   const kt=ev=>{if(ev.key==='Escape'){end(false);return}if(ev.key==='Enter'&&(ev.metaKey||ev.ctrlKey)){ev.preventDefault();end(true);return}
