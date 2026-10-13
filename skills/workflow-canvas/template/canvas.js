@@ -48,7 +48,7 @@ async function load(){
 const OUTBOX='qa-outbox:'+location.pathname;
 async function post(u,body,{method='POST',asUser=true}={}){const req={method,headers:{'Content-Type':'application/json',...(asUser?{'X-Actor':'User'}:{})},body:JSON.stringify(body)};
   S.inflight=(S.inflight||0)+1;/* keepalive + inflight: a live reload never drops a save mid-send */
-  try{const r=await fetch(API+u,{...req,keepalive:true});if(!r.ok)throw new Error(r.status);S.inflight--;S.offline=false;srvState();return await r.json()}
+  try{const r=await fetch(API+u,{...req,keepalive:req.body.length<60000/* the browser caps keepalive bodies at 64 KB: a pasted screenshot goes without */});if(!r.ok)throw new Error(r.status);S.inflight--;S.offline=false;srvState();return await r.json()}
   catch(e){S.inflight=Math.max(0,S.inflight-1);if(/^4\d\d$/.test(String(e.message))){toast('Couldn’t save — the server rejected it ('+e.message+'). Your change is only on this screen.',null,'err');return null}
     const q=JSON.parse(localStorage[OUTBOX]||'[]');q.push([u,body,method]);localStorage[OUTBOX]=JSON.stringify(q);S.offline=true;srvState();return null}}
 async function flushOutbox(){const q=JSON.parse(localStorage[OUTBOX]||'[]');if(!q.length||S.offline)return;localStorage[OUTBOX]='[]';for(const [u,b,m] of q)await post(u,b,{method:m});toast(`Sent ${q.length} change${q.length>1?'s':''} saved while offline`);refresh()}
