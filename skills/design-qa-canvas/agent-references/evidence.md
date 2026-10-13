@@ -23,7 +23,7 @@ Split the page by area (creation, state/stage logic, queues/lists, edge states).
 - **Scope:** the area, plus known findings to skip, **and the design reference for that area** (Figma frame links, or the design-repo route). Agents report differences from the design. Their own opinions are marked `"judgement": true`, low priority, major problems only.
 - **Output:**
   - `live-review/shots/<agent>-NN.jpg`, one per finding.
-  - `live-review/findings-<agent>.json` as `[{key, section, kind, priority, title, what, screenshot}]`.
+  - `live-review/findings-<agent>.json` as `[{key, section, tags?, priority, title, what, screenshot}]`.
   - `<agent>-log.md` listing records created and scenarios it couldn't reach.
 - **Tips:** if a page loads forever, switch tab and back. Masked inputs drop keystrokes, so reuse existing test records.
 

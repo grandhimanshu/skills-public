@@ -149,6 +149,7 @@ const server = http.createServer(async (req, res) => {
     }
     if (!/^[A-Za-z0-9_-]+$/.test(String(b.cid || ''))) return send(res, 400, { error: 'bad cid' })
     const e = {}; for (const k of ['title', 'what', 'out', 'screen']) if (b[k] !== undefined) { if (b[k] !== '' && !SAFE(b[k])) return send(res, 400, { error: k + ' not allowed' }); e[k] = b[k] }
+    if (Array.isArray(b.tags)) e.tags = [...new Set(b.tags.filter((t) => ['ux', 'dev', 'cos'].includes(t)))]   // QA tags: UX gap · Dev gap · Cosmetic gap
     if (!Object.keys(e).length) return send(res, 400, { error: 'nothing to save' })
     const all = readJson(EDITS, {}); all[b.cid] = { ...(all[b.cid] || {}), ...e }
     fs.writeFileSync(EDITS, JSON.stringify(all, null, 2))

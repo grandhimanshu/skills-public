@@ -654,3 +654,10 @@ html.view .pp,html.view .card .lacts .pp,html.view .trow h3 .a.pp,html.view .row
 .card .body.shut[hidden]{display:block;margin:0!important;padding:0!important}   /* collapsed but findable with ⌘F */
 /* issue actions show only while hovering the issue text, not the screenshot above it */
 .card .cap.gi1:not(:hover) .racts .hv,.card .gi:not(:hover) .racts .hv{visibility:hidden}
+/* QA tags at the end of the heading: quiet by default (Settings → Tags: Colourful) */
+.tagl{font-size:.62em;font-weight:400;color:var(--muted);margin-left:.4em;cursor:pointer;white-space:nowrap;vertical-align:.1em}
+.tagl .tgadd{visibility:hidden}.trow:hover .tagl .tgadd{visibility:visible}.tagl:hover{color:var(--ink)}
+.tagl.clr .tg-ux{color:#6D4AC7}.tagl.clr .tg-dev{color:#B4531A}.tagl.clr .tg-cos{color:#0F7A8A}
+#menu.tagmenu{min-width:170px}#menu.tagmenu .ck{display:inline-flex;width:14px;justify-content:center}#menu.tagmenu .ck .i{width:12px;height:12px}
+.bulk .chip.dd{display:inline-flex;align-items:center;gap:4px}.bulk .chip.dd .i{width:11px;height:11px}
+.bulk{display:flex;flex-wrap:nowrap;gap:6px;overflow:hidden}

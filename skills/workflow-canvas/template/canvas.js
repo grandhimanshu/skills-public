@@ -37,7 +37,7 @@ async function load(){
   const ren=ed.sections||{};document.getElementById('ttl').textContent=D.title;document.title=D.title;
   S.sections=D.sections.map(x=>ren[x]||x);
   const mk=i=>{const e0=ed[i.cid]||{},e=e0.out?{...e0,what:[e0.out,e0.what].filter(Boolean).join('<br>')}:e0,acc=(i.sugg||[]).filter(([id])=>sg[id]==='accepted').map(([,t])=>'• '+t.replace(/^<b>[^<]*<\/b>\s*/,''));
-    const what=(e.what??i.what??'');return {...i,screen:e.screen!==undefined?e.screen:(i.screen||''),section:ren[i.section]||i.section,title:e.title??i.title,out:'',
+    const what=(e.what??i.what??'');return {...i,tags:e.tags||i.tags||[],screen:e.screen!==undefined?e.screen:(i.screen||''),section:ren[i.section]||i.section,title:e.title??i.title,out:'',
       what:acc.length&&!e.what?(what?what+'<br>':'')+acc.join('<br>'):what,sugg:(i.sugg||[]).filter(([id])=>!sg[id]).map(([,t])=>t),sids:(i.sugg||[]).filter(([id])=>!sg[id]).map(([id])=>id),...(!FLOW&&i.ref?{prev:{img:i.ref,label:i.refLabel||'',ref:true}}:{})}};
   if(FLOW){D.issues=D.steps}else if(ad?.items?.length){/* issues the user added by hand */D.issues=D.issues.concat(ad.items.filter(a=>!D.issues.some(i=>i.cid===a.cid)))}
   const mkT=i=>{const o=mk(i);if(!trimHtml(o.title)&&trimHtml(o.what)){/* no title but details: show the first line as the title */const [a,...r]=o.what.split(/<br\s*\/?>/);o.title=a.replace(/^\s*[•\-]\s*/,'').trim();o.what=r.join('<br>')}return o};
@@ -64,9 +64,8 @@ const pr=it=>S.prio[it.cid]||'low';
 const threads=t=>S.comments.filter(c=>c.target===t&&!c.resolved);
 const st=c=>c.status||(c.claudeDone?'done':'todo');
 function visible(it){
-  if(S.openOnly&&!OPEN.has(it.kind))return false;
   if(S.fp.size&&!S.fp.has(pr(it)))return false;
-  if(S.fk.size&&!S.fk.has(it.kind))return false;
+  if(S.ftag?.size){const t=it.tags||[];if(!t.some(x=>S.ftag.has(x))&&!(S.ftag.has('none')&&!t.length))return false}
   if(S.fh&&!it.hl)return false;return true;
 }
 // effective graph: a deleted step's predecessors connect straight to its successors; a deleted origin just drops (its successors become origins)
@@ -186,7 +185,7 @@ function addRow(i){return FLOW?'':`<button class="addrow" data-addiss="${i.cid}"
 function hoverActs(i,cls){const T=threads('card:'+i.cid),n=T.length,ai=T.some(t=>(t.thread||[]).at(-1)?.by==='Claude');return `<span class="${cls}">${i.prev&&cls!=='racts'?`<button class="a hv cmp" data-cmp="${i.cid}" title="${i.prev.ref?'Show the design reference (Alt)':'Compare with the previous screenshot (Alt)'}${i.prev.label?' ('+esc(i.prev.label)+')':''}">${ic(i.prev.ref?'image':'history')}</button>`:''}<button class="a hv" data-menu="${i.cid}" title="More">${ic('more')}</button><button class="a hv del" data-del="${i.cid}" title="Delete issue">${ic('trash')}</button><button class="a cmi ${n?'has':'hv'} ${ai?'ai':''}" data-open="card:${i.cid}" title="Comments">${ic('msg')}${n?`<em>${n}</em>`:''}</button></span>`}
 /* a thread moved from this issue to the one it is now about leaves a link behind */
 function movedNote(i){const m=S.comments.filter(c=>c.movedFrom==='card:'+i.cid&&!c.resolved);if(!m.length)return '';const to=m[0].target.slice(5),it=(S.items||[]).find(x=>x.cid===to);return `<button class="moved" data-goto="${to}">${m.length>1?m.length+' comments':'Comment'} moved to ${it?num(it)+' · '+esc(it.title):to} →</button>`}
-function issueRow(i){return `<div class="trow"><h3><span class="snt">${num(i)}</span><button class="a pp ${pr(i)}" data-prio="${i.cid}" title="${PL[pr(i)]} priority — click to change">${PS[pr(i)]}</button>${unread(i)?`<button class="a rd" data-read="${i.cid}" title="Unread — click to mark read"><i></i></button>`:''}<span class="ttl" data-ed="title">${i.title}</span>${hasDet(i)?`<button class="dtog ${i.expanded?'up':''}" data-more="${i.cid}" title="Details">Details ${ic('chev')}</button>`:''}</h3></div>${movedNote(i)}
+function issueRow(i){return `<div class="trow"><h3><span class="snt">${num(i)}</span><button class="a pp ${pr(i)}" data-prio="${i.cid}" title="${PL[pr(i)]} priority — click to change">${PS[pr(i)]}</button>${unread(i)?`<button class="a rd" data-read="${i.cid}" title="Unread — click to mark read"><i></i></button>`:''}<span class="ttl" data-ed="title">${i.title}</span>${FLOW?'':tagLine(i)}${hasDet(i)?`<button class="dtog ${i.expanded?'up':''}" data-more="${i.cid}" title="Details">Details ${ic('chev')}</button>`:''}</h3></div>${movedNote(i)}
     <div class="body ${i.expanded?'':'shut'}" ${i.expanded?'':'hidden="until-found"'} data-body="${i.cid}"><div class="fix" data-ed="what">${trimHtml(i.what)}</div></div>
     ${i.sugg.length?`<div class="sugg"><div class="sh">Claude’s suggestions · ${i.sugg.length}<button class="rjall" data-sgtop="${i.cid}">Reject all</button></div><ul>${i.sugg.map((s,k)=>`<li><input type="checkbox" data-sg="${i.cid}:${k}" aria-label="Select suggestion"><span style="flex:1">${s.replace(/^<b>[^<]*<\/b>\s*/,'')}</span></li>`).join('')}</ul><div class="sg-bar" data-sgbar="${i.cid}"></div></div>`:''}`}
 const LOADED=new Set();   // screenshots already loaded once: re-renders skip the preview
@@ -390,9 +389,9 @@ function setsPanel(){const P=document.getElementById('settings');P.innerHTML=`
   <div class="frow"><span class="l">Canvas</span><span class="bgs">${BGS.map(([v,n])=>`<button data-bg="${v}" class="${S.bg===v?'on':''}" style="background:${v}" title="${n}"></button>`).join('')}<span class="hexw">#<input class="hex" data-hex value="${S.bg.replace('#','').toUpperCase()}" maxlength="7" spellcheck="false" aria-label="Canvas colour (hex)"></span></span></div>
   <div class="frow"><span class="l">Screen switch</span><span class="seg">${[['auto','Auto','Slides; quick repeat presses switch instantly'],['pan','Pan','Always slides'],['instant','Instant','Always jumps']].map(([v,n,t])=>`<button data-anim="${v}" class="${S.anim===v?'on':''}" title="${t}">${n}</button>`).join('')}</span></div>
   <div class="frow"><span class="l">Priority</span><button class="sw" data-showprio role="switch" aria-checked="${S.showPrio}"><span class="swt"><span>Shown</span><span>Hidden</span></span><small>${S.showPrio?'H / M / L badges everywhere':'Hidden on the canvas and in the side pane'}</small></button></div>
-  <div class="frow"><span class="l">Titles</span><button class="sw" data-wrap role="switch" aria-checked="${S.wrap}"><span class="swt"><span>One line</span><span>Full</span></span><small>${S.wrap?'Full titles in the side pane':'Long titles are cut with …'}</small></button></div>`;
+  ${FLOW?'':`<div class="frow"><span class="l">Tags</span><span class="seg">${[['0','Basic'],['1','Colourful']].map(([v,n])=>`<button data-tagclr="${v}" class="${(S.tagClr?'1':'0')===v?'on':''}">${n}</button>`).join('')}</span></div>`}</div>`;
   P.querySelectorAll('.sw').forEach(b=>b.setAttribute('aria-checked',b.hasAttribute('data-wrap')?!S.wrap:b.hasAttribute('data-showprio')?S.showPrio:S.showIds));document.getElementById('sb').classList.toggle('wrapt',S.wrap)}
-S.wrap=localStorage.qaWrap==='1';
+S.wrap=false;   // full titles in the side pane: setting removed
 const BGS=[['#F4F4F4','Light grey (default)'],['#FAFAFA','Off-white'],['#FFFFFF','White'],['#ECEEF1','Cool grey'],['#2A2724','Dark']];
 S.bg=localStorage.qaBg||'#F4F4F4';const applyBg=()=>{document.documentElement.style.setProperty('--bg',S.bg);document.documentElement.classList.toggle('dark-canvas',S.bg==='#2A2724')};applyBg();
 document.addEventListener('click',e=>{if(e.target.closest('#setbtn')){const P=document.getElementById('settings'),o=!P.classList.contains('open');P.classList.toggle('open',o);document.getElementById('setbtn').classList.toggle('on',o);if(o)setsPanel();e.stopImmediatePropagation();return}
@@ -423,7 +422,8 @@ document.addEventListener('wheel',e=>{if(e.ctrlKey&&!e.target.closest('#vp'))e.p
 /* side-pane bulk actions: New tab = mark all read / unread (with Undo); Inbox = resolve every thread Claude has finished (confirm first, then Undo) */
 document.addEventListener('click',e=>{const bk=e.target.closest('[data-bulk]');if(bk){e.stopPropagation();bulk(bk.dataset.bulk)}},true);
 function bulkBar(all){S.bulkAll=all;const L=document.getElementById('list');let h='';const nu0=all.filter(unread).length;
-  if(S.tab==='issues'||S.tab==='new')h=`<button class="chip ${S.unreadOnly?'on':''}" data-funread title="Show only unread">Unread · ${nu0}</button>`;/* quick unread filter (also in Filters) */
+  if(S.tab==='issues'||S.tab==='new'){const lb=(set,names,all)=>set.size?[...set].map(k=>names[k]).join(', '):all;
+    h=`<button class="chip ${S.unreadOnly?'on':''}" data-funread title="Show only unread">Unread · ${nu0}</button>`+(!FLOW&&S.showPrio?`<button class="chip dd ${S.fp.size?'on':''}" data-fdd="prio">${lb(S.fp,PL,'Priority')} ${ic('chev')}</button>`:'')+(FLOW?'':`<button class="chip dd ${S.ftag?.size?'on':''}" data-fdd="tag">${lb(S.ftag||new Set,{...TAGS,none:'No tag'},'Tag')} ${ic('chev')}</button>`)}/* filters: one row of chips */
   if(S.tab==='new'||(FLOW&&S.tab!=='inbox'&&S.tab!=='deleted'&&S.tab!=='resolved')){const nu=nu0;h+=(nu?`<button class="chip" data-bulk="read">Mark all read</button>`:'')+(all.length>nu?`<button class="chip" data-bulk="unread">Mark all unread</button>`:'')}
   else if(false){const n=S.comments.filter(c=>!c.resolved&&st(c)==='done').length;if(n)h=`<button class="chip" data-bulk="resolve">Resolve all · ${n}</button>`}
   if(h){const sbt=L.querySelector('.subtabs'),x=`<div class="bulk">${h}</div>`;sbt?sbt.insertAdjacentHTML('afterend',x):L.insertAdjacentHTML('afterbegin',x)}}
@@ -603,3 +603,21 @@ VP.addEventListener('scroll',()=>{if(!VP.scrollTop&&!VP.scrollLeft)return;/* fin
 // unread only: the Issues tab shows just the unread ones (the old New tab's list), from the chip at its top or from Filters
 document.addEventListener('click',e=>{const b=e.target.closest('[data-funread]');if(!b)return;e.stopImmediatePropagation();S.unreadOnly=!S.unreadOnly;
   if(S.tab==='issues'||S.tab==='new')S.tab=S.unreadOnly?'new':'issues';document.querySelectorAll('#filters [data-funread]').forEach(c=>c.classList.toggle('on',!!S.unreadOnly));render()},true);
+
+// ---- QA tags (UX gap · Dev gap · Cosmetic gap): at the end of the heading on the canvas; several per issue
+const TAGS={ux:'UX gap',dev:'Dev gap',cos:'Cosmetic gap'};S.tagClr=localStorage.qaTagClr==='1';S.ftag=S.ftag||new Set();
+function tagLine(i){const t=(i.tags||[]).filter(x=>TAGS[x]);return `<span class="tagl ${S.tagClr?'clr':''}" data-tagfor="${i.cid}" title="Tags — click to change">${t.length?'· '+t.map(x=>`<span class="tg tg-${x}">${TAGS[x]}</span>`).join(', '):'<span class="tgadd">+ Tag</span>'}</span>`}
+function openTagMenu(cid,btn){const M=document.getElementById('menu'),it=S.items.find(i=>i.cid===cid);if(!it)return;M.className='tagmenu';M.dataset.for=cid;
+  M.innerHTML=Object.entries(TAGS).map(([k,l])=>`<button data-tagset="${k}" class="${(it.tags||[]).includes(k)?'on':''}"><span class="ck">${(it.tags||[]).includes(k)?ic('check'):''}</span>${l}</button>`).join('');placeMenu(M,btn)}
+function openFilterDD(kind,btn){const M=document.getElementById('menu');M.className='tagmenu';M.dataset.for='';M.dataset.ddk=kind;
+  const opts=kind==='prio'?Object.entries(PL):[...Object.entries(TAGS),['none','No tag']],set=kind==='prio'?S.fp:S.ftag;
+  M.innerHTML=opts.map(([k,l])=>`<button data-fset="${k}" class="${set.has(k)?'on':''}"><span class="ck">${set.has(k)?ic('check'):''}</span>${l}</button>`).join('')+(set.size?`<button data-fclear>Clear</button>`:'');placeMenu(M,btn)}
+window.addEventListener('click',e=>{/* window capture: runs before the menu's own close-on-click */
+  const tl=e.target.closest('[data-tagfor]');if(tl&&!tl.closest('[contenteditable=true]')){e.stopImmediatePropagation();openTagMenu(tl.dataset.tagfor,tl);return}
+  const ts=e.target.closest('#menu [data-tagset]');if(ts){e.stopImmediatePropagation();const M=document.getElementById('menu'),cid=M.dataset.for,it=S.items.find(i=>i.cid===cid),k=ts.dataset.tagset;if(!it)return;
+    const t=new Set(it.tags||[]);t.has(k)?t.delete(k):t.add(k);it.tags=[...t];post('api/edit',{cid,tags:it.tags});render();const a=document.querySelector(`[data-tagfor="${cid}"]`);if(a)openTagMenu(cid,a);else closeMenu();return}
+  const fd=e.target.closest('[data-fdd]');if(fd){e.stopImmediatePropagation();const M=document.getElementById('menu');if(!M.hidden&&M.dataset.ddk===fd.dataset.fdd){closeMenu();M.dataset.ddk='';return}openFilterDD(fd.dataset.fdd,fd);return}
+  const fs=e.target.closest('#menu [data-fset],#menu [data-fclear]');if(fs){e.stopImmediatePropagation();const M=document.getElementById('menu'),kind=M.dataset.ddk,set=kind==='prio'?S.fp:S.ftag;
+    if(fs.hasAttribute('data-fclear'))set.clear();else{const k=fs.dataset.fset;set.has(k)?set.delete(k):set.add(k)}render();const a=document.querySelector(`[data-fdd="${kind}"]`);if(a)openFilterDD(kind,a);return}
+  const tc=e.target.closest('#settings [data-tagclr]');if(tc){e.stopImmediatePropagation();S.tagClr=tc.dataset.tagclr==='1';localStorage.qaTagClr=S.tagClr?'1':'0';setsPanel();render();return}
+},true);

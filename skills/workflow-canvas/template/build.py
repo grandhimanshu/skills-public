@@ -72,7 +72,6 @@ for it in issues:
         o = it.pop('out'); it['what'] = '<br>'.join(x for x in (o, it.get('what', '')) if x)
     if 'n' not in it:
         nxt += 1; it['n'] = nxt
-    if it['kind'] not in KINDS: raise SystemExit(f"issue {it.get('code') or it['n']}: kind must be one of {sorted(KINDS)}")
     if it['section'] not in sections: sections.append(it['section'])
 json.dump(cfg, open(src, 'w', encoding='utf-8'), indent=2, ensure_ascii=False)
 
@@ -86,7 +85,7 @@ if FLOW:
                        'img': st.get('img'), 'prev': st.get('prev'), 'v': ver(st.get('img'), str(st['id'])), 'kind': 'gap', 'section': '', 'sugg': st.get('sugg', [])} for st in steps]}
 else:
   data = {'title': cfg.get('title', 'Design QA'), 'port': PORT, 'highlight': hl, 'sections': sections,
-          'issues': [{'cid': str(it.get('code') or it['n']), 'n': it['n'], 'section': it['section'], 'kind': it['kind'],
+          'issues': [{'cid': str(it.get('code') or it['n']), 'n': it['n'], 'section': it['section'], 'kind': it.get('kind', 'gap'), 'tags': [t for t in it.get('tags', []) if t in ('ux', 'dev', 'cos')],
                     'title': it['title'], 'what': it.get('what', ''), 'img': it.get('img'),
                     'ts': it.get('ts', ''), 'hl': bool(it.get('highlight')), 'sugg': it.get('sugg', []), 'screen': it.get('screen', ''),
                     'ref': it.get('ref') or refOf.get(it.get('screen') or '\0'), 'refLabel': it.get('refLabel') or refLb.get(it.get('screen') or '\0', '')} for it in issues]}

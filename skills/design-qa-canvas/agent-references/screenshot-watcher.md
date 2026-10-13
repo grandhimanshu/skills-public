@@ -7,7 +7,7 @@ Tools: this skill's `scripts/` (`watch-inbox.py`, `comments.sh`).
    - Read the image and check it is relevant to this canvas (see below). If it clearly isn't, `comments.sh discard <INid>` and stop: no issue, no thread.
    - If the user commented on it (target `card:IN<n>`, see `comments.sh list`), their words are the issue: make them the title, written as theirs (not "Reported by…").
    - Write it the way `writing-issues.md` says: details only for what the title can't say, so usually empty apart from the Reporter line. Describing the screenshot, restating the comment, or saying what you can't tell adds reading, not information; if you need to know something, ask in the thread.
-   - Add the issue to `issues.json` with `code: "S<next>"` and kind `ctx` (or `gap`/`ux` if the comment makes it clear), `img` pointing at the file and the right app-area `section`. Suggestions are optional: what you're sure of goes in the title; `sugg` is for gaps against the design reference you're only fairly sure of (see `writing-issues.md`).
+   - Add the issue to `issues.json` with `code: "S<next>"`, `tags` only if the comment makes the gap type clear, `img` pointing at the file and the right app-area `section`. Suggestions are optional: what you're sure of goes in the title; `sugg` is for gaps against the design reference you're only fairly sure of (see `writing-issues.md`).
    - `python3 build.py`, then `comments.sh inbox-done IN<n> S<next>`.
    - Reply and mark done on its comment thread, if any (see `comment-watcher.md`).
 3. **More than 2 waiting:** coordinate subagents, one per screenshot. They draft issue JSON; you are the single writer of `issues.json`.
