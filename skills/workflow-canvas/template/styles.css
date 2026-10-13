@@ -666,3 +666,9 @@ html.view .pp,html.view .card .lacts .pp,html.view .trow h3 .a.pp,html.view .row
 html.tagclr .tok-ux{background:#EEE8FB;color:#5B3DB0}html.tagclr .tok-dev{background:#FBEDE3;color:#9A4512}html.tagclr .tok-cos{background:#E3F4F6;color:#0B6673}
 #atpop{position:fixed;z-index:60;background:#fff;border:1px solid var(--line);border-radius:8px;box-shadow:0 10px 28px rgba(0,0,0,.14);padding:4px;display:flex;flex-direction:column;min-width:150px}
 #atpop[hidden]{display:none}#atpop button{text-align:left;padding:5px 8px;border-radius:5px;font-size:13px}#atpop button.on,#atpop button:hover{background:#F1EFEB}
+/* New screenshots / Deleted sections at the end of the canvas */
+.lane.xl h2{cursor:pointer;display:flex;align-items:center;gap:.4em}.lane.xl h2>.i{width:.8em;height:.8em;transition:transform .15s}.lane.xl.shut h2>.i{transform:rotate(-90deg)}
+.lane.xl.shut .grid{display:none}.lane.xl .xdall{margin-left:auto;font-size:.45em}
+.xcard .xt{color:var(--muted);font-weight:500}.xdel .shotw{opacity:.75}
+#list .xrow{cursor:pointer}#list .xrow .dthumb{width:28px;height:20px;object-fit:cover;border-radius:3px;margin-right:6px}
+html.view .lane.xl{display:none}
