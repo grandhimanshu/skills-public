@@ -647,3 +647,5 @@ html.view .pp,html.view .card .lacts .pp,html.view .trow h3 .a.pp,html.view .row
 #world .card.editing .cap,#world .gi.editing{box-shadow:0 0 0 calc(2px * var(--inv,1)) var(--blue),0 0 0 calc(5px * var(--inv,1)) rgba(47,111,235,.18);background:#fff;border-radius:calc(3px * var(--inv,1))}
 /* screenshot actions show only while hovering the screenshot itself, not the text under it (the comment count stays) */
 .card .shotw:not(:hover) .acts .a:not(.cmi.has),.card .shotw:not(:hover) .acts .hv,.card .shotw:not(:hover) .lacts .exp2{visibility:hidden}
+.endrip{position:absolute;z-index:40;width:0;height:0;pointer-events:none}.endrip::before{content:'';position:absolute;left:calc(var(--d,220px)/-2);top:calc(var(--d,220px)/-2);width:var(--d,220px);height:var(--d,220px);border-radius:50%;border:2px solid rgba(209,52,36,.55);background:radial-gradient(circle,rgba(209,52,36,0) 40%,rgba(209,52,36,.12) 70%,rgba(209,52,36,0) 72%);transform:scale(.2);opacity:0;animation:endrip .8s ease-out forwards}
+@keyframes endrip{0%{transform:scale(.2);opacity:0}15%{opacity:1}60%{opacity:.8}100%{transform:scale(1);opacity:0}}
