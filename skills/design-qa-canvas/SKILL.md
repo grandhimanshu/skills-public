@@ -40,7 +40,7 @@ The first build with a page name (`python3 build.py <data> <page>.html`) is reme
 | field | notes |
 |---|---|
 | `section` | an app area (New order, Eligibility…), never a source |
-| `tags` | optional, any of `ux` (UX gap) · `dev` (Dev gap) · `cos` (Cosmetic gap). Shown at the end of the heading on the canvas; the user can change them. Tag only when you're sure; otherwise leave it for the user |
+| tags | written in the text: `@UX-Gap`, `@Dev-Gap`, `@Cosmetic-Gap` in the title or details (shown as a grey chip; the Tag filter reads them). When you're sure of the gap type, add one at the end of the title; otherwise leave it for the user |
 | `title` | the heading, and the presenting cue: a few words that say the issue on their own |
 | `what` | details, only what the title can't say (often empty). Inline `<b> <i> <code> <br>` allowed. On the canvas, title and details edit as one box: the first line is the title, Enter goes to the details, Shift+Enter adds a line break inside the title |
 | `img`, `ts` | screenshot path relative to the canvas; video time |
@@ -92,7 +92,7 @@ Only when the user asks to deploy or publish, or to set up the toolbar links: re
 - **Side pane:**
   - Issues are grouped in collapsible sections. ⌘-click shows only that section; double-click a name to rename it.
   - The Sort button sorts by priority, only when clicked.
-  - Filters: one row of chips at the top of Issues — Unread · N, Priority ▾, Tag ▾ (multi-select dropdowns). Tags sit at the end of each heading on the canvas (click to change; Settings → Tags: Basic / Colourful).
+  - Filters: one row of chips at the top of Issues — Unread · N, Priority ▾, Tag ▾ (multi-select dropdowns). Tags are `@` chips in the text: type `@` while editing to pick one, Backspace removes a chip whole, pasted `@UX-Gap` text becomes a chip (Settings → Tags: Basic / Colourful).
   - Settings (knobs icon, inline panel): **Numbers** ID (permanent) ↔ # (list position) · **Titles** One line ↔ Full.
   - Rows: priority and unread dot are clickable. Click a selected row again to zoom to it; double-click a title to edit it.
 - **Claude-watching line** under the pane header: green when both watchers are running. Amber "Claude isn't watching your comments / new screenshots" (with Copy message for Claude) when a watcher stopped. Watchers report in every poll and say "off" when they exit; 30 s of silence also counts as off.
