@@ -42,7 +42,7 @@ The first build with a page name (`python3 build.py <data> <page>.html`) is reme
 | `section` | an app area (New order, Eligibility…), never a source |
 | `kind` | `gap` dev ≠ design · `ux` design question · `dec` decided · `later` parked · `ctx` screenshot without context yet |
 | `title` | the heading, and the presenting cue: a few words that say the issue on their own |
-| `what` | details, only what the title can't say (often empty). Inline `<b> <i> <code> <br>` allowed. On the canvas, title and details edit as one box: the first line is the title, Enter goes to the details |
+| `what` | details, only what the title can't say (often empty). Inline `<b> <i> <code> <br>` allowed. On the canvas, title and details edit as one box: the first line is the title, Enter goes to the details, Shift+Enter adds a line break inside the title |
 | `img`, `ts` | screenshot path relative to the canvas; video time |
 | `code` | `S1…` from screenshots, `A1…` from live audits. Otherwise the id is the number |
 | `highlight` | flags the person in `highlight.chip` |
