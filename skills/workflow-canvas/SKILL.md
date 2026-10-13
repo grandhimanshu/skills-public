@@ -58,7 +58,7 @@ Only when the user asks to deploy or publish, or to set up the toolbar links: re
   - A middle step's neighbours reconnect (A → B → C becomes A → C).
   - Deleting a flow's first step splits the flow: its next steps become starts.
   - Deleted steps wait in the Deleted tab until the user confirms.
-- **New tab** (there is no Issues tab): steps the user hasn't seen, **including steps whose screenshot changed**. Read state is per screenshot version.
+- **Unread** (the chip at the top of Screens, also in Filters): steps the user hasn't seen, **including steps whose screenshot changed**. Read state is per screenshot version.
 - **0** zooms to the step nearest the cursor; **0** again shows the whole canvas.
 - **→** walks one whole path to its end, then the next branch; **←** goes back left along the arrows (on a flow's first step, to the last screen of the previous flow) (never sideways to another branch), and → after ← retraces the same branch; **↑ ↓** step through every card in canvas order. Pressing again within 0.7s switches instantly instead of animating, so you can flip between screens to spot the change. **Space** marks the selected step read and moves on, like →. Leaving a flow's end screen plays a soft red ring on it for 0.3s before moving. **Delete** removes the selected step (the flow reconnects; Undo).
 - **Alt** flips a step that has `prev` to its previous screenshot (only those steps; not in the view build).
@@ -71,7 +71,7 @@ When the screen changes, put the new image in `img` and the old one in `prev` (*
 - If nothing changed visually, leave the step alone. No `prev`, no new version.
 - **A sharper copy of the same screen** (higher resolution only): replace `img`, no `prev`. The build sees it looks the same and keeps the step read (`canvas-imgver.json`); don't mark it New.
 - **Keep it read when you're sure it needs no review:** if the user already reviewed this exact change (here, or the same change on another step) and you're really confident, keep the new screenshot read: after rebuilding, `comments.sh seen <cid> <img>`. When in doubt, leave it New.
-- The step then shows up in **New** for the user.
+- The step then shows up as unread for the user.
 - Dates in `prev.label`: just the date (`Oct 9`) when it differs from the previous version's. **On the same date, add the time** (`Oct 9, 16:58`), never a counter like `Oct 9 (3rd)`.
 
 ## New screenshots from the Desktop (flow mode; see `agent-references/screenshot-watcher.md`)

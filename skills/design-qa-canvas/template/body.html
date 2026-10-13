@@ -14,11 +14,12 @@
   </div>
  <div id="settings"></div>
   <div id="filters">
+    <div class="frow"><span class="l">Show</span><button class="chip" data-funread>Unread only</button></div>
     <div class="frow"><span class="l">Priority</span><button class="chip" data-fp="high">High</button><button class="chip" data-fp="med">Medium</button><button class="chip" data-fp="low">Low</button></div>
    </div>
   <div class="tabs">
    <button class="tab on" data-tab="issues">Issues <span class="c" id="cI"></span></button>
-   <button class="tab" data-tab="new">New <span class="c" id="cN"></span></button>
+   <button class="tab" data-tab="new" hidden>New <span class="c" id="cN"></span></button>
    <button class="tab" data-tab="inbox" data-tip="To-dos: your comments for Claude, and new screenshots"><svg class="i ti" style="width:15px;height:15px"><use href="#i-todo"/></svg><span class="tl">To-dos</span> <span class="c" id="cIn"></span></button>
    <button class="tab" data-tab="deleted" data-tip="Deleted — waiting for you to confirm"><svg class="i ti" style="width:15px;height:15px"><use href="#i-trash"/></svg><span class="tl">Deleted</span><span class="c" id="cD">0</span></button>
   </div>

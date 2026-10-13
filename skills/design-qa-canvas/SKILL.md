@@ -1,6 +1,6 @@
 ---
 name: design-qa-canvas
-description: Build and run a design-QA review canvas — numbered, prioritised issues with full screenshots on a pan/zoom canvas, a side pane (Issues · New · To-dos · Deleted), threaded comments that are tasks for Claude, a live screenshot inbox, keep/drop for Claude's suggestions, and on-canvas editing. Use when the user wants to turn a recording, meeting, Desktop screenshots or a live page into a reviewable issue list, compare a build against a design, or set up the same review loop for another flow. Also runs its review loop: watching the user's comments and new screenshots ("watch comments", "work my comments", "pick up screenshots"). The UI is a finished template — copy it, never rebuild it. Default port 4200.
+description: Build and run a design-QA review canvas — numbered, prioritised issues with full screenshots on a pan/zoom canvas, a side pane (Issues with an Unread filter · To-dos · Deleted), threaded comments that are tasks for Claude, a live screenshot inbox, keep/drop for Claude's suggestions, and on-canvas editing. Use when the user wants to turn a recording, meeting, Desktop screenshots or a live page into a reviewable issue list, compare a build against a design, or set up the same review loop for another flow. Also runs its review loop: watching the user's comments and new screenshots ("watch comments", "work my comments", "pick up screenshots"). The UI is a finished template — copy it, never rebuild it. Default port 4200.
 ---
 
 # design-qa-canvas

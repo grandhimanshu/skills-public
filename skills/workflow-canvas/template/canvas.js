@@ -100,7 +100,7 @@ function render(){
   void `<span><b>${open}</b> open</span><span><b style="color:var(--high)">${hi}</b> high</span><span><b>${todo}</b> comments to do</span>`;
   document.getElementById('cI').textContent=all.length;document.getElementById('cN').textContent=all.filter(unread).length;document.getElementById('cD').textContent=(S.deleted||[]).length;document.querySelector('[data-tab="deleted"]').hidden=!(S.deleted||[]).length&&S.tab!=='deleted';requestAnimationFrame(fitTabs);
   const waiting=S.inbox.filter(i=>!i.processed).length;const cIn=document.getElementById('cIn');{/* To-dos badge: "completed · in progress", or just completed when nothing is in progress */const op=S.comments.filter(c=>!c.resolved),shot=t=>S.inbox.some(i=>'card:'+i.id===t);let dn=0,td=0;op.filter(c=>!shot(c.target)).forEach(c=>st(c)==='done'?dn++:td++);S.inbox.forEach(i=>{const th=op.filter(c=>c.target==='card:'+i.id);(i.processed&&th.every(c=>st(c)==='done'))?dn++:td++});cIn.textContent=td?`${dn} · ${td}`:dn;cIn.title=`${dn} completed${td?` · ${td} in progress`:''}`}cIn.className='c'+(waiting?' blue':'');
-  document.getElementById('fdot').hidden=!S.fp.size;
+  document.getElementById('fdot').hidden=!S.fp.size&&!S.unreadOnly;
   const L=document.getElementById('list');
   if(S.tab==='issues'){
     L.innerHTML=groups.map(g=>{const op=S.openSecs.has(g.s);return `<div class="secw ${op?'open':''}" data-secw="${esc(g.s)}"><div class="sec" data-sec="${esc(g.s)}">${ic('chev')}<span class="stt" data-secname="${esc(g.s)}">${g.s}</span><span class="n">${g.items.length}</span></div>`+
@@ -237,7 +237,7 @@ document.addEventListener('click',e=>{
   closeMenu();
   if(e.target.closest('[data-close]')){document.getElementById('pop').classList.remove('open');S.popT=null;return}
   if(e.target.closest('#pop'))return;
-  const tab=e.target.closest('[data-tab]');if(tab){S.tab=tab.dataset.tab;document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t===tab));render();requestAnimationFrame(markStuck);return}
+  const tab=e.target.closest('[data-tab]');if(tab){S.tab=tab.dataset.tab==='issues'&&S.unreadOnly?'new':tab.dataset.tab;document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t===tab));render();requestAnimationFrame(markStuck);return}
   if(e.target.closest('#sortbtn')){sortByPriority();return}
   if(e.target.closest('#fbtn')){document.getElementById('filters').classList.toggle('open');document.getElementById('fbtn').classList.toggle('on');return}
   const sec=e.target.closest('[data-sec]');if(e.target.closest('#todoJump')){const L=document.getElementById('list'),h=document.querySelector('[data-secw="ib:todo"]');L.scrollTo({top:h.offsetTop-L.offsetTop,behavior:'smooth'});if(!S.openSecs.has('ib:todo')){S.openSecs.add('ib:todo');syncSecs()}return}
@@ -422,8 +422,9 @@ function popAfterResolve(t){setTimeout(loadResolved,600);const P=document.getEle
 document.addEventListener('wheel',e=>{if(e.ctrlKey&&!e.target.closest('#vp'))e.preventDefault()},{passive:false});['gesturestart','gesturechange'].forEach(t=>document.addEventListener(t,e=>e.preventDefault()));
 /* side-pane bulk actions: New tab = mark all read / unread (with Undo); Inbox = resolve every thread Claude has finished (confirm first, then Undo) */
 document.addEventListener('click',e=>{const bk=e.target.closest('[data-bulk]');if(bk){e.stopPropagation();bulk(bk.dataset.bulk)}},true);
-function bulkBar(all){S.bulkAll=all;const L=document.getElementById('list');let h='';
-  if(S.tab==='new'||(FLOW&&S.tab!=='inbox'&&S.tab!=='deleted'&&S.tab!=='resolved')){const nu=all.filter(unread).length;h=(nu?`<button class="chip" data-bulk="read">Mark all read</button>`:'')+(all.length>nu?`<button class="chip" data-bulk="unread">Mark all unread</button>`:'')}
+function bulkBar(all){S.bulkAll=all;const L=document.getElementById('list');let h='';const nu0=all.filter(unread).length;
+  if(S.tab==='issues'||S.tab==='new')h=`<button class="chip ${S.unreadOnly?'on':''}" data-funread title="Show only unread">Unread · ${nu0}</button>`;/* quick unread filter (also in Filters) */
+  if(S.tab==='new'||(FLOW&&S.tab!=='inbox'&&S.tab!=='deleted'&&S.tab!=='resolved')){const nu=nu0;h+=(nu?`<button class="chip" data-bulk="read">Mark all read</button>`:'')+(all.length>nu?`<button class="chip" data-bulk="unread">Mark all unread</button>`:'')}
   else if(false){const n=S.comments.filter(c=>!c.resolved&&st(c)==='done').length;if(n)h=`<button class="chip" data-bulk="resolve">Resolve all · ${n}</button>`}
   if(h){const sbt=L.querySelector('.subtabs'),x=`<div class="bulk">${h}</div>`;sbt?sbt.insertAdjacentHTML('afterend',x):L.insertAdjacentHTML('afterbegin',x)}}
 function setRead(i,read){const k=stKey(i.cid);if(read)S.readLocal.add(i.cid);else{S.readLocal.delete(i.cid);S.seen.delete(k)}post('api/state',{cid:k,new:!read})}
@@ -598,3 +599,7 @@ document.addEventListener('beforematch',e=>{const b=e.target.closest?.('[data-bo
 VP.addEventListener('scroll',()=>{if(!VP.scrollTop&&!VP.scrollLeft)return;/* find-in-page scrolled the canvas to a match (it centres it): take the card under the centre, undo the scroll, pan there our way */
   const v=VP.getBoundingClientRect(),el=document.elementFromPoint(v.left+v.width/2,v.top+v.height/2),c=el?.closest?.('.gi')||el?.closest?.('.card');VP.scrollTop=0;VP.scrollLeft=0;
   const cid=c?.dataset.cid||c?.querySelector('.gi')?.dataset.cid;if(cid&&S.items.some(i=>i.cid===cid))requestAnimationFrame(()=>{select(cid);goTo(cid,true)})});
+
+// unread only: the Issues tab shows just the unread ones (the old New tab's list), from the chip at its top or from Filters
+document.addEventListener('click',e=>{const b=e.target.closest('[data-funread]');if(!b)return;e.stopImmediatePropagation();S.unreadOnly=!S.unreadOnly;
+  if(S.tab==='issues'||S.tab==='new')S.tab=S.unreadOnly?'new':'issues';document.querySelectorAll('#filters [data-funread]').forEach(c=>c.classList.toggle('on',!!S.unreadOnly));render()},true);
