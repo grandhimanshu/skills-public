@@ -93,7 +93,7 @@ if VIEW:   # bake in what the server would answer, so titles, notes, deletions a
     rd = lambda n, d: json.load(open(HERE / n, encoding='utf-8')) if (HERE / n).exists() else d
     data['view'] = True
     data['snap'] = {'edit': rd('canvas-edits.json', {}), 'removed': rd('canvas-removed.json', {}), 'priorities': rd('canvas-priorities.json', {}),
-                    'suggestions': rd('canvas-suggestions.json', {}), 'added': rd('canvas-added.json', {'items': []}),
+                    'suggestions': rd('canvas-suggestions.json', {}), 'added': rd('canvas-added.json', {'items': []}), 'fixed': rd('canvas-fixed.json', {}),
                     'state': {'seen': [d['cid'] + ('@' + d['v'] if d.get('v') else '') for d in (data.get('steps') or data['issues'])] + [a['cid'] for a in rd('canvas-added.json', {'items': []}).get('items', [])]}}
 def imgmeta(img):   # [w, h, tiny pixelated preview]: the card keeps its size while the screenshot loads, nothing jumps
     f = HERE / img

@@ -671,10 +671,13 @@ html.tagclr .tok-ux{background:#EEE8FB;color:#5B3DB0}html.tagclr .tok-dev{backgr
 .lane.xl.shut .grid{display:none}.lane.xl .xdall{margin-left:auto;font-size:.45em}
 .xcard .xt{color:var(--muted);font-weight:500}.xdel .shotw{opacity:.75}
 #list .xrow{cursor:pointer}#list .xrow .dthumb{width:28px;height:20px;object-fit:cover;border-radius:3px;margin-right:6px}
-html.view .lane.xl{display:none}
+html.view .lane.xl:not([data-xl="x:fix"]){display:none}
 #list .sec .xsdall{margin-left:auto;margin-right:6px;padding:2px 8px;font-size:11px}
 .oa.res em{font-style:normal;font-size:10px;margin-left:2px}
 .task .th1 .tcnt{color:var(--muted);font-weight:400;font-size:11.5px;white-space:nowrap}
 .bulk{flex-wrap:wrap!important;overflow:visible!important}.bulk .chip{white-space:nowrap;flex-shrink:0}   /* chips keep one line each; the row wraps when the pane is narrow */
 .bulk{justify-content:flex-start!important}
 .view [data-read]{pointer-events:none;cursor:default}   /* unread dots show (new since the last deployment) but can't be toggled */
+/* Fixed: issue-row buttons a touch smaller on the canvas (the screenshot's stay as they are) */
+#world .racts{zoom:.85}
+.xfix .shotw{opacity:.8}.a.fx:hover{color:#2F7D4F;border-color:#BFE1CB}

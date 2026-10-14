@@ -21,6 +21,7 @@ const ACTIVE = path.join(os.homedir(), '.claude', 'design-qa-active.json')
 const WATCH_DESKTOP = process.env.DESKTOP_WATCH !== '0'
 const PAGE = process.env.CANVAS_PAGE || 'canvas.html'
 const EDITS = path.join(ROOT, 'canvas-edits.json')
+const FIXED = path.join(ROOT, 'canvas-fixed.json')                   // { [cid]: { at } } — issues the user marked fixed (shown in the Fixed section)
 const ADDED = path.join(ROOT, 'canvas-added.json')                   // { items: [issue] } — issues the user added by hand on a screenshot (QA)                   // { [cardId]: { title, what, out } } — the user's edits; build.py/gen.py re-apply them on rebuild
 const REMOVED = path.join(ROOT, 'canvas-removed.json')               // { [cardId]: { title, n } } — issues the user removed; hidden, never deleted, restorable
 const PORT = Number(process.argv[2] || process.env.PORT || 4200)
@@ -159,6 +160,13 @@ const server = http.createServer(async (req, res) => {
     return send(res, 200, { ok: true })
   }
   if (p === '/api/edit' && req.method === 'GET') return send(res, 200, readJson(EDITS, {}))
+  if (p === '/api/fixed' && req.method === 'GET') return send(res, 200, readJson(FIXED, {}))
+  if (p === '/api/fixed' && req.method === 'POST') {
+    if (req.headers['x-actor'] !== 'User') return send(res, 403, { error: 'only the user marks issues fixed' })
+    const b = await readBody(req), d = readJson(FIXED, {})
+    for (const c of (b.cids || []).map(String)) { if (!/^[A-Za-z0-9_-]+$/.test(c)) continue; if (b.fixed) d[c] = { at: now() }; else delete d[c] }
+    fs.writeFileSync(FIXED, JSON.stringify(d, null, 2)); return send(res, 200, d)
+  }
   if (p === '/api/added' && req.method === 'GET') return send(res, 200, readJson(ADDED, { items: [] }))
   if (p === '/api/added' && req.method === 'POST') {
     if (req.headers['x-actor'] !== 'User') return send(res, 403, { error: 'only the user adds issues by hand' })
