@@ -670,3 +670,4 @@ html.tagclr .tok-ux{background:#EEE8FB;color:#5B3DB0}html.tagclr .tok-dev{backgr
 #list .xrow{cursor:pointer}#list .xrow .dthumb{width:28px;height:20px;object-fit:cover;border-radius:3px;margin-right:6px}
 html.view .lane.xl{display:none}
 #list .sec .xsdall{margin-left:auto;margin-right:6px;padding:2px 8px;font-size:11px}
+.oa.res em{font-style:normal;font-size:10px;margin-left:2px}
