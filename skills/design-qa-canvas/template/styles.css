@@ -678,3 +678,4 @@ html.view .lane.xl:not([data-xl="x:fix"]){display:none}
 /* Fixed: issue-row buttons a touch smaller on the canvas (the screenshot's stay as they are) */
 #world .racts{zoom:.85}
 .xfix .shotw{opacity:.8}.a.fx:hover{color:#2F7D4F;border-color:#BFE1CB}
+.tok{margin:0 .18em}   /* room for the caret on either side of a tag */
