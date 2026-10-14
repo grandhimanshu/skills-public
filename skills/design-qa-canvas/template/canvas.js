@@ -646,7 +646,7 @@ window.addEventListener('click',e=>{
   const p1=e.target.closest('[data-purge1]');if(p1){e.stopImmediatePropagation();e.preventDefault();purge([p1.dataset.purge1]);return}
   const pa=e.target.closest('[data-delallc]');if(pa){e.stopImmediatePropagation();e.preventDefault();const ids=S.deleted.map(i=>i.cid);confirmBox(`Delete all ${ids.length} for good? Their comments go too.`,'Delete all',()=>purge(ids));return}
   const xt=e.target.closest('[data-xltog]');if(xt&&!e.target.closest('button')){e.stopImmediatePropagation();const k=xt.dataset.xltog;S.openSecs.has(k)?S.openSecs.delete(k):S.openSecs.add(k);render();return}
-  const xg=e.target.closest('[data-xgo]');if(xg&&!e.target.closest('button')){e.stopImmediatePropagation();const k=xg.closest('[data-secw]')?.dataset.secw;if(k&&!S.openSecs.has(k)){S.openSecs.add(k);render()}requestAnimationFrame(()=>{select(xg.dataset.xgo,false);goTo(xg.dataset.xgo,true)});return}
+  const xg=e.target.closest('[data-xgo]');if(xg&&!e.target.closest('button')){e.stopImmediatePropagation();const k=xg.closest('[data-secw]')?.dataset.secw,id=xg.dataset.xgo;/* open the section on the canvas too, so the card has a place to pan to */if(k){S.openSecs.add(k);if(document.querySelector(`[data-xl="${k}"]`)?.classList.contains('shut'))render()}requestAnimationFrame(()=>requestAnimationFrame(()=>{select(id,false);goTo(id,true)}));return}
 },true);
 
 // ---- your view is yours: filters, zoom, selection, open sections and tab survive updates and reloads (per canvas, in this browser)
