@@ -567,7 +567,7 @@ function editCard(e){const box=e.target.closest('.gi')||e.target.closest('.card'
   const it=S.items.find(i=>i.cid===box.dataset.cid);if(!it)return;const b0=T.innerHTML,f0=F.innerHTML,body=F.closest('.body'),shut=body.classList.contains('shut');body.classList.remove('shut');body.removeAttribute('hidden');box.classList.add('editing');
   T.contentEditable=F.contentEditable='true';const tgt=e.target.closest('.fix')?F:T;tgt.focus();{const r=document.caretRangeFromPoint?.(e.clientX,e.clientY),sl=getSelection();sl.removeAllRanges();if(r&&tgt.contains(r.startContainer)){r.collapse(true);sl.addRange(r)}else caretAt(tgt,false)}
   let done=false;const clean=h=>h.replace(/^(<br>|\s|&nbsp;)+|(<br>|\s|&nbsp;)+$/g,'').replace(/<div>(.*?)<\/div>/g,'<br>$1');
-  const end=save=>{if(done)return;done=true;T.contentEditable=F.contentEditable='false';box.classList.remove('editing');T.removeEventListener('keydown',kt);F.removeEventListener('keydown',kf);box.removeEventListener('focusout',fo);
+  let end=save=>{if(done)return;done=true;T.contentEditable=F.contentEditable='false';box.classList.remove('editing');T.removeEventListener('keydown',kt);F.removeEventListener('keydown',kf);box.removeEventListener('focusout',fo);
     if(!save){T.innerHTML=b0;F.innerHTML=f0}else{let t=untok(clean(T.innerHTML)),w=untok(clean(F.innerHTML));const ch={};if(!trimHtml(t)&&trimHtml(w)){/* no title but details: the first line becomes the title */const [a,...r]=w.split(/<br\s*\/?>/);t=a.replace(/^\s*[•\-]\s*/,'').trim();w=r.join('<br>').replace(/^(<br>|\s)+/,'');F.innerHTML=w;T.innerHTML=t}if(t!==untok(b0)&&t!==it.title){it.title=t;ch.title=t}if(w!==it.what){it.what=w;ch.what=w}
       if(Object.keys(ch).length){if(unread(it)){S.readLocal.add(it.cid);post('api/state',{cid:stKey(it.cid),new:false})}post('api/edit',{cid:it.cid,...ch}).then(r=>r&&toast('Saved'));render()}}
     if(shut&&!it.expanded)body.classList.add('shut');fitAll()};
@@ -585,6 +585,9 @@ function editCard(e){const box=e.target.closest('.gi')||e.target.closest('.card'
   const fo=()=>setTimeout(()=>{if(!box.contains(document.activeElement)&&!S.atHold){atClose();end(true)}},0);
   const ka=ev=>{if(!FLOW&&atKey(ev))ev.stopImmediatePropagation()};T.addEventListener('keydown',ka,true);F.addEventListener('keydown',ka,true);
   const ia=()=>{if(!FLOW)atInput()};T.addEventListener('input',ia);F.addEventListener('input',ia);
+  /* a click on empty space inside the box keeps editing: the caret goes to the end of the nearer field */
+  const zone=T.closest('.gi')||T.closest('.cap')||box,md=ev=>{if(document.getElementById('atpop')?.contains(ev.target))return;if(!zone.contains(ev.target)){end(true);return}/* outside: save and close */if(T.contains(ev.target)||F.contains(ev.target)||ev.target.closest('button,a,input'))return;ev.preventDefault();const tr=T.getBoundingClientRect(),el=ev.clientY>tr.bottom?F:T;el.focus();caretAt(el,false)};document.addEventListener('mousedown',md,true);
+  const endWrap=end;end=save=>{document.removeEventListener('mousedown',md,true);atClose&&atClose();endWrap(save)};
   T.addEventListener('keydown',kt);F.addEventListener('keydown',kf);box.addEventListener('focusout',fo)}
 // ---- paste into any text box comes in as plain text (the canvas's own size and colour); copy keeps only basic formatting
 document.addEventListener('paste',e=>{const ce=e.target.closest?.('[contenteditable=true]');if(!ce)return;const t=e.clipboardData?.getData('text/plain');if(t==null||[...(e.clipboardData.items||[])].some(i=>i.type.startsWith('image/'))&&!t)return;
