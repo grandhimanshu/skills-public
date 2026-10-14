@@ -221,6 +221,7 @@ const server = http.createServer(async (req, res) => {
     if (!it) return send(res, 404, { error: 'not found' })
     if (typeof b.processed === 'boolean') it.processed = b.processed
     for (const k of ['deleted', 'resolved']) if (typeof b[k] === 'boolean') { if (req.headers['x-actor'] !== 'User') return send(res, 403, { error: 'only the user deletes or resolves screenshots' }); it[k] = b[k] }
+    if (b.issue && readJson(REMOVED, {})[String(b.issue)]) return send(res, 400, { error: 'issue ' + b.issue + ' is deleted — file a new issue instead' })
     if (b.issue) it.issue = String(b.issue)
     // filed as an issue/step: its threads move onto that card and the screenshot item closes — one thread to resolve, not two
     if (it.processed && it.issue && !it.merged) {
