@@ -89,4 +89,5 @@ Helper commands are in this skill's `scripts/` (`comments.sh`, `watch-comments.p
 
 ## Backlog (ideas, not built or parked)
 
+- **Live screens instead of screenshots**: each step shows the real screen rather than a picture: an HTML copy of the page (snapshot of its DOM and styles, so text stays crisp and selectable at any zoom), or the matching Figma frame if the flow lives in Figma (or the canvas itself moves to Figma/FigJam). Open questions: keeping HTML copies faithful (fonts, scripts, auth-only data), file size, and how comments and Before/After would attach.
 - **Viewers flag priority** in a deployed view, for the user to see. Needs a store the deployment can write to.
