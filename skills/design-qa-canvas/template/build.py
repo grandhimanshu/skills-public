@@ -94,7 +94,7 @@ if VIEW:   # bake in what the server would answer, so titles, notes, deletions a
     data['view'] = True
     data['snap'] = {'edit': rd('canvas-edits.json', {}), 'removed': rd('canvas-removed.json', {}), 'priorities': rd('canvas-priorities.json', {}),
                     'suggestions': rd('canvas-suggestions.json', {}), 'added': rd('canvas-added.json', {'items': []}),
-                    'state': {'seen': [d['cid'] + ('@' + d['v'] if d.get('v') else '') for d in (data.get('steps') or data['issues'])]}}
+                    'state': {'seen': [d['cid'] + ('@' + d['v'] if d.get('v') else '') for d in (data.get('steps') or data['issues'])] + [a['cid'] for a in rd('canvas-added.json', {'items': []}).get('items', [])]}}
 def imgmeta(img):   # [w, h, tiny pixelated preview]: the card keeps its size while the screenshot loads, nothing jumps
     f = HERE / img
     try:
@@ -118,9 +118,17 @@ DEP = HERE / 'canvas-deploy.json'   # {version, at, hash}: goes up once per view
 dep = json.load(open(DEP)) if DEP.exists() else {}
 if VIEW:
     hv = _h.sha1((json.dumps(data, sort_keys=True, ensure_ascii=False) + ''.join((HERE / f).read_text(encoding='utf-8') for f in ('body.html', 'styles.css', 'canvas.js'))).encode()).hexdigest()[:12]   # content or template changed
+    rmv = data['snap']['removed']
+    now_ids = sorted(({d['cid'] for d in (data.get('steps') or data['issues'])} | {a['cid'] for a in data['snap']['added'].get('items', [])}) - {c for c, v in rmv.items() if v})
+    if dep.get('hash') == hv and dep.get('cids') != now_ids: dep['cids'] = now_ids; json.dump(dep, open(DEP, 'w'), indent=2)
     if dep.get('hash') != hv:
-        dep = {'version': dep.get('version', 0) + 1, 'at': _dt.datetime.now().strftime('%b %-d, %Y, %H:%M'), 'hash': hv}
+        dep = {'version': dep.get('version', 0) + 1, 'at': _dt.datetime.now().strftime('%b %-d, %Y, %H:%M'), 'hash': hv,
+               'cids': now_ids, 'prevCids': dep.get('cids')}
         json.dump(dep, open(DEP, 'w'), indent=2)
+    # viewers see what's new since the previous deployment as unread; everything else is read (the live canvas keeps its own read state)
+    if dep.get('prevCids') is not None:
+        fresh = set(now_ids) - set(dep['prevCids'])
+        data['snap']['state'] = {'seen': [k for k in data['snap']['state']['seen'] if k.split('@')[0] not in fresh]}
 data['deploy'] = {'version': dep.get('version'), 'at': dep.get('at'), 'url': (cfg.get('deploy') or {}).get('url')}
 app = dict(cfg.get('app') or {}); app.pop('dir', None)   # dir: local repo folder, used by scripts/app-links.py only
 if VIEW: app.pop('local', None)

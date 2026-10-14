@@ -634,7 +634,7 @@ html.noprio .pp,html.noprio .card .lacts .pp,html.noprio .trow h3 .a.pp,html.nop
 .lane.flow svg .elabel{font-size:5.25px;stroke-width:2px}
 
 /* view build (build.py --view): read-only, nothing that writes or needs the server */
-.view .tab:not([data-tab="issues"]),.view #wst,.view #srv,.view #srvToast,.view #sortbtn,.view #todoJump,.view .hv:not(.cmp),.view .addrow,.view [data-open],.view [data-read],.view [data-readall],.view [data-bulk],.view [data-menu],.view [data-del],.view [data-deltop],.view [data-delall],.view [data-delall-shot]{display:none!important}
+.view .tab:not([data-tab="issues"]),.view #wst,.view #srv,.view #srvToast,.view #sortbtn,.view #todoJump,.view .hv:not(.cmp),.view .addrow,.view [data-open],.view [data-readall],.view [data-bulk],.view [data-menu],.view [data-del],.view [data-deltop],.view [data-delall],.view [data-delall-shot]{display:none!important}
 html.view .pp,html.view .card .lacts .pp,html.view .trow h3 .a.pp,html.view .row .pp,html.view [data-prio]{display:none!important}
 /* while a screenshot loads: its real size (from build.py) and a tiny pixelated preview to orient by */
 .shot.lq{background-size:100% 100%!important;background-repeat:no-repeat!important;image-rendering:pixelated;animation:lqp 1.2s ease-in-out infinite alternate}
@@ -677,3 +677,4 @@ html.view .lane.xl{display:none}
 .task .th1 .tcnt{color:var(--muted);font-weight:400;font-size:11.5px;white-space:nowrap}
 .bulk{flex-wrap:wrap!important;overflow:visible!important}.bulk .chip{white-space:nowrap;flex-shrink:0}   /* chips keep one line each; the row wraps when the pane is narrow */
 .bulk{justify-content:flex-start!important}
+.view [data-read]{pointer-events:none;cursor:default}   /* unread dots show (new since the last deployment) but can't be toggled */

@@ -11,6 +11,7 @@ python3 build.py issues.json index.html --view
 - Viewers get the Issues list only: no comments, read/unread, priorities, editing, adding, deleting or paste. Design references (`ref`, Alt) stay.
 - The user's live changes (edited titles, deletions, accepted suggestions, added issues) are baked in, so rebuild before each deploy.
 - Deploy `index.html` with the screenshot folders. Put the deployed address in `"deploy": {"url": …}`.
+- **Unread for viewers:** what's new since the previous deployment shows as unread on the published page (dots and the Unread chip, not clickable); everything else is read. The live canvas keeps its own read state. `canvas-deploy.json` keeps each version's ids (`cids`, `prevCids`).
 - The version (v1, v2…) and date go up by themselves when a view build's content changed (`canvas-deploy.json`). The ⋯ menu shows them; on the live canvas it reads "Last deployed …" or "Not deployed yet".
 - Every build records each screenshot's size and a tiny pixelated preview (Pillow, optional), so cards keep their place while images load.
 
