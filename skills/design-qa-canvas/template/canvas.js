@@ -326,8 +326,8 @@ document.getElementById('list').addEventListener('pointerover',e=>{const r=e.tar
 document.getElementById('list').addEventListener('pointerleave',()=>document.querySelectorAll('.card.hov').forEach(c=>c.classList.remove('hov')));
 // live reload: when this file changes on disk, reload and land on the same view
 let ver=null;setInterval(async()=>{try{const h=(await (await fetch(API+'api/version',{cache:'no-store'})).json()).page;
-  if(ver&&h!==ver){if(busy()){if(!S.updWait){S.updWait=1;toast('Canvas updated — it will refresh when you finish typing')}return}
-    sessionStorage.qaView=JSON.stringify({x:S.x,y:S.y,z:S.z,sel:S.sel,tab:S.tab,popT:document.getElementById('pop').classList.contains('open')?S.popT:null});location.reload()}ver=h}catch{}},1500);
+  if(ver&&h!==ver){if(busy()){if(!S.updWait){S.updWait=1;toast('Canvas updated — it will show when you finish typing')}return}
+    S.updWait=0;if(await hotUpdate())ver=h;else{saveView();location.reload()}return}ver=h}catch{}},1500);
 function busy(){return !!(S.inflight>0||document.querySelector('[contenteditable=true]')||document.activeElement?.matches?.('textarea,input[type=text]')||[...document.querySelectorAll('#pop textarea')].some(t=>t.value.trim()))}
 {const R=document.getElementById('sbrz');let d=null;const set=w=>{w=Math.max(240,Math.min(560,w));document.documentElement.style.setProperty('--sbw',w+'px');localStorage.mockSbw=w};
   if(localStorage.mockSbw)set(+localStorage.mockSbw);
@@ -344,8 +344,8 @@ addEventListener('resize',fitTabs);new ResizeObserver(fitTabs).observe(document.
 document.getElementById('list').addEventListener('scroll',markStuck);
 function markStuck(){const j=document.getElementById('todoJump'),h=S.tab==='inbox'&&document.querySelector('[data-sec="ib:todo"]');if(!h){j.hidden=true;return}
   const L=document.getElementById('list').getBoundingClientRect(),r=h.getBoundingClientRect();j.hidden=r.top<L.bottom-8;j.querySelector('b').textContent=h.querySelector('.n').textContent}
-load().then(()=>{const q=new URLSearchParams(location.search);const v=sessionStorage.qaView&&JSON.parse(sessionStorage.qaView);delete sessionStorage.qaView;
-  if(v){S.z=v.z;S.x=v.x;S.y=v.y;paint();if(v.sel)select(v.sel,false);if(v.tab&&v.tab!=='issues')document.querySelector(`[data-tab="${v.tab}"]`)?.click();if(v.popT){S.popT=v.popT;openPop(v.popT,document.querySelector(`.row[data-cid="${v.popT.replace('card:','')}"]`))}}if(q.get('z')){S.z=+q.get('z');paint()}if(q.get('sugg')){const it=ordered().flatMap(g=>g.items).find(i=>i.sugg.length);select(it.cid);goTo(it.cid);paint()}if(q.get('sel')){const id=ordered().flatMap(g=>g.items)[+q.get('sel')-1]?.cid;select(id);goTo(id);paint()}});
+load().then(()=>{const q=new URLSearchParams(location.search);const v=readView();
+  if(v)applyView(v,true);if(q.get('z')){S.z=+q.get('z');paint()}if(q.get('sugg')){const it=ordered().flatMap(g=>g.items).find(i=>i.sugg.length);select(it.cid);goTo(it.cid);paint()}if(q.get('sel')){const id=ordered().flatMap(g=>g.items)[+q.get('sel')-1]?.cid;select(id);goTo(id);paint()}});
 
 // ---- comments: Enter sends (Shift+Enter = new line); a reply re-opens the task for Claude
 async function sendFrom(ta){const v=ta.value.trim();if(!v)return;const t=S.popT;delete localStorage[DKEY(ta)];ta.value='';
@@ -648,3 +648,22 @@ window.addEventListener('click',e=>{
   const xt=e.target.closest('[data-xltog]');if(xt&&!e.target.closest('button')){e.stopImmediatePropagation();const k=xt.dataset.xltog;S.openSecs.has(k)?S.openSecs.delete(k):S.openSecs.add(k);render();return}
   const xg=e.target.closest('[data-xgo]');if(xg&&!e.target.closest('button')){e.stopImmediatePropagation();const k=xg.closest('[data-secw]')?.dataset.secw;if(k&&!S.openSecs.has(k)){S.openSecs.add(k);render()}requestAnimationFrame(()=>{select(xg.dataset.xgo,false);goTo(xg.dataset.xgo,true)});return}
 },true);
+
+// ---- your view is yours: filters, zoom, selection, open sections and tab survive updates and reloads (per canvas, in this browser)
+const VIEWK='qaView:'+location.pathname;
+function viewState(){return {x:S.x,y:S.y,z:S.z,sel:S.sel,tab:S.tab==='new'?'issues':S.tab,popT:document.getElementById('pop').classList.contains('open')?S.popT:null,fp:[...S.fp],ftag:[...(S.ftag||[])],unread:!!S.unreadOnly,open:[...(S.openSecs||[])],res:!!S.resOpen,ib:S.ibShut?[...S.ibShut]:null}}
+function saveView(){try{localStorage[VIEWK]=JSON.stringify(viewState())}catch{}}
+function readView(){try{return JSON.parse(localStorage[VIEWK]||sessionStorage.qaView||'null')}catch{return null}finally{delete sessionStorage.qaView}}
+function applyView(v,move){S.fp=new Set(v.fp||[]);S.ftag=new Set(v.ftag||[]);S.unreadOnly=!!v.unread;if(v.open)S.openSecs=new Set(v.open);S.resOpen=!!v.res;if(v.ib)S.ibShut=new Set(v.ib);
+  const tab=v.tab||'issues';S.tab=tab==='issues'&&S.unreadOnly?'new':tab;document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.dataset.tab===tab));
+  if(move&&v.z){S.z=v.z;S.x=v.x;S.y=v.y}render();paint();if(v.sel&&document.getElementById('c-'+v.sel))select(v.sel,false);
+  if(v.popT&&move){S.popT=v.popT;openPop(v.popT,document.querySelector(`.row[data-cid="${v.popT.replace('card:','')}"]`))}}
+addEventListener('beforeunload',saveView);setInterval(saveView,4000);
+// ---- updates arrive in place (like a shared doc): the new data replaces the old and your view stays; only a template change reloads the page
+async function hotUpdate(){if(ASFILE)return false;let html;try{html=await (await fetch(location.pathname+'?_='+Date.now(),{cache:'no-store'})).text()}catch{return false}
+  const doc=new DOMParser().parseFromString(html,'text/html'),code=doc.querySelector('meta[name="canvas-code"]')?.content,mine=document.querySelector('meta[name="canvas-code"]')?.content;
+  if(!code||code!==mine)return false;let nd;try{nd=JSON.parse(doc.getElementById('qa-data').textContent)}catch{return false}
+  const sig=i=>[i.title,i.what||i.out,i.img,i.section].join('\u0001'),before=new Map(S.items.map(i=>[i.cid,sig(i)])),v=viewState();
+  Object.keys(D).forEach(k=>delete D[k]);Object.assign(D,nd);await load();applyView(v,true);
+  let add=0,upd=0;S.items.forEach(i=>{if(!before.has(i.cid))add++;else if(before.get(i.cid)!==sig(i))upd++});const gone=[...before.keys()].filter(c=>!S.items.some(i=>i.cid===c)).length;
+  const parts=[add&&`${add} added`,upd&&`${upd} updated`,gone&&`${gone} removed`].filter(Boolean);if(parts.length)toast('Canvas updated · '+parts.join(' · '));return true}

@@ -127,11 +127,13 @@ if VIEW: app.pop('local', None)
 data['app'] = app or None   # optional {url, repo, branch}: the Open app button
 blob = json.dumps(data, ensure_ascii=False).replace('</', '<\\/')
 
+import hashlib as _hc
+CODEV = _hc.sha1(''.join((HERE / f).read_text(encoding='utf-8') for f in ('body.html', 'styles.css', 'canvas.js')).encode()).hexdigest()[:10]   # the page reloads only when this changes
 body = (HERE / 'body.html').read_text(encoding='utf-8')
 body = body.replace('__HL_LABEL__', (hl or {}).get('label', 'Flagged')).replace('__PORT__', str(PORT))
 page = f'''<!doctype html>
 <html lang="en"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
-<meta name="canvas-port" content="{PORT}" /><title>{data['title']}</title>
+<meta name="canvas-port" content="{PORT}" /><meta name="canvas-code" content="{CODEV}" /><title>{data['title']}</title>
 <style>
 {(HERE / 'styles.css').read_text(encoding='utf-8')}
 </style></head><body>
