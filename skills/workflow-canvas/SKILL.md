@@ -64,6 +64,7 @@ Only when the user asks to deploy or publish, or to set up the toolbar links: re
 - **Unread** (the chip at the top of Screens, also in Filters): steps the user hasn't seen, **including steps whose screenshot changed**. Read state is per screenshot version.
 - **0** zooms to the step nearest the cursor; **0** again shows the whole canvas.
 - **→** walks one whole path to its end, then the next branch; **←** goes back left along the arrows (on a flow's first step, to the last screen of the previous flow) (never sideways to another branch), and → after ← retraces the same branch; **↑ ↓** step through every card in canvas order. Pressing again within 0.7s switches instantly instead of animating, so you can flip between screens to spot the change. **Space** marks the selected step read and moves on, like →. Leaving a flow's end screen plays a soft red ring on it for 0.3s before moving. **Delete** removes the selected step (the flow reconnects; Undo).
+- **Enter** edits the selected issue's title and details (deleted and fixed ones too); Esc or ⌘Enter saves.
 - **Alt** flips a step that has `prev` to its previous screenshot (only those steps; not in the view build).
 - Comments, priority H/M/L, double-click editing, Settings (Numbers, Titles, Canvas background, default #F4F4F4), and the Claude-watching line all work as in design-qa-canvas.
 
