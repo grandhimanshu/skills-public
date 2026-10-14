@@ -7,7 +7,7 @@ Tools: this skill's `scripts/` (`watch-comments.py`, `comments.sh`). Set `PORT` 
    - **≤ 2 open tasks:** do them yourself.
    - **More than 2:** you become the **coordinator**. Hand each task to a background Sonnet subagent with a self-contained prompt: the comment id, target and text, the exact files, what "done" looks like, and the `comments.sh` commands.
    - **One writer at a time** for `issues.json` and rebuilds. Verify-and-reply tasks get read-only agents. Identical duplicate comments go to one agent.
-3. **Per task:** `comments.sh start <id>` → do the work (edit `issues.json`, `python3 build.py`) → `comments.sh reply <id> "what changed, in one or two lines"` → `comments.sh done <id>`. A new user reply puts the task back to To do automatically.
+3. **Per task:** `comments.sh start <id>` → do the work (edit `issues.json`, `python3 build.py`) → `comments.sh reply <id> "what changed, in one or two lines"` (this also marks it done; add `--open` only if you are still working on it). A new user reply puts the task back to To do automatically.
 4. **Never resolve, restore or purge anything.** The server refuses it from you; only the user resolves, in the To-dos.
    - If a comment asks you to delete an issue, `comments.sh remove <cid> "title"` moves it to the Deleted tab, where the user confirms.
    - Numbers never shift.

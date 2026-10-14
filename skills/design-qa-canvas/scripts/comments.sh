@@ -2,7 +2,7 @@
 # Helper for Claude and its subagents to work the review thread. PORT defaults to 4200.
 #   comments.sh list                         open comments (what to work on) — never read the resolved archive
 #   comments.sh start  <id>                  status -> In progress (blue)
-#   comments.sh reply  <id> "text"           reply as Claude
+#   comments.sh reply  <id> "text" [--open]   reply as Claude and mark it done (--open: still working)
 #   comments.sh done   <id>                  status -> Done (green)
 #   comments.sh prio   <cardId> high|med|low set a card's priority
 #   comments.sh seen   <cardId> <img>       mark this exact screenshot read (run in the canvas folder; key = id@sha1(img)[:8], as build.py does)
@@ -26,6 +26,7 @@ b,i,t=sys.argv[1:4]
 r=urllib.request.Request(f"{b}/api/comments/{i}/reply",data=json.dumps({"by":"Claude","text":t}).encode(),headers={"Content-Type":"application/json"})
 urllib.request.urlopen(r); print("replied:",i)
 PY
+  [ "${4:-}" = "--open" ] || "$0" done "$2"   # a reply is the answer, so the thread is done; pass --open if you're still working on it
   ;;
   done)  curl -s -X POST "$B/api/comments/$2/flags" -H "$J" -d '{"status":"done"}' >/dev/null && echo "done: $2";;
   prio)  curl -s -X POST "$B/api/priorities" -H "$J" -d "{\"cid\":\"$2\",\"level\":\"$3\"}" >/dev/null && echo "priority $2 = $3";;

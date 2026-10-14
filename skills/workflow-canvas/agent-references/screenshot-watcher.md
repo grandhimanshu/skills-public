@@ -2,7 +2,7 @@
 
 Tools: this skill's `scripts/` (`watch-inbox.py`, `comments.sh`).
 
-1. Run `watch-inbox.py <port>` under **Monitor** (re-arm every 30 min). The watcher reports to the canvas: the user sees whether Claude is watching, and an amber warning as soon as it stops. **Re-arm promptly when Monitor times out**, so the warning doesn't stay up. Each new screenshot arrives as `INBOX IN<n> <file> …`. Screenshots the user **deleted or resolved** in the To-dos are skipped automatically.
+1. Run `watch-inbox.py <port>` under **Monitor** (re-arm every 30 min). **Each re-arm, also run `comments.sh inbox`** and file any screenshot still waiting: one that arrived while you were busy isn't announced again. The watcher reports to the canvas: the user sees whether Claude is watching, and an amber warning as soon as it stops. **Re-arm promptly when Monitor times out**, so the warning doesn't stay up. Each new screenshot arrives as `INBOX IN<n> <file> …`. Screenshots the user **deleted or resolved** in the To-dos are skipped automatically.
 2. **For each one:**
    - Read the image.
    - If the user commented on it (target `card:IN<n>`, see `comments.sh list`), their words are the context. Otherwise describe only what you can see.
