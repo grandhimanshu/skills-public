@@ -709,8 +709,8 @@ window.addEventListener('click',e=>{const b=e.target.closest('[data-tresg]');if(
 
 
 // ---- Fixed: the user marks an issue (or every issue on a screenshot) fixed; it moves to the Fixed section, Reopen brings it back
-function setFixed(ids,on){const mv=on?S.items.filter(i=>ids.includes(i.cid)):(S.fixedItems||[]).filter(i=>ids.includes(i.cid));if(!mv.length)return;
+function setFixed(ids,on){/* like delete: if the selected issue goes, move to the next one (or the previous at the end) */let nx=null;if(on&&ids.includes(S.sel)){const L=ordered().flatMap(g=>g.items.map(i=>i.cid)),k=L.indexOf(S.sel);nx=L.slice(k+1).find(c=>!ids.includes(c))||L.slice(0,k).reverse().find(c=>!ids.includes(c))||null}const mv=on?S.items.filter(i=>ids.includes(i.cid)):(S.fixedItems||[]).filter(i=>ids.includes(i.cid));if(!mv.length)return;
   S.fixedItems=S.fixedItems||[];if(on){S.items=S.items.filter(i=>!ids.includes(i.cid));S.fixedItems.push(...mv);ids.forEach(c=>S.fixed.add(c))}else{S.fixedItems=S.fixedItems.filter(i=>!ids.includes(i.cid));S.items.push(...mv);ids.forEach(c=>S.fixed.delete(c))}
-  render();post('api/fixed',{cids:ids,fixed:on});toast(on?(mv.length>1?`${mv.length} issues marked fixed`:'Marked fixed'):'Reopened',()=>setFixed(ids,!on))}
+  render();if(nx)stepTo(null,nx);else if(on&&ids.includes(S.sel))S.sel=null;post('api/fixed',{cids:ids,fixed:on});toast(on?(mv.length>1?`${mv.length} issues marked fixed`:'Marked fixed'):'Reopened',()=>setFixed(ids,!on))}
 window.addEventListener('click',e=>{const f=e.target.closest('[data-fix]');if(f){e.stopImmediatePropagation();e.preventDefault();setFixed(f.dataset.fix.split(','),true);return}
   const u=e.target.closest('[data-unfix]');if(u){e.stopImmediatePropagation();e.preventDefault();setFixed([u.dataset.unfix],false)}},true);
