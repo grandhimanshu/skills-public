@@ -672,3 +672,4 @@ html.view .lane.xl{display:none}
 #list .sec .xsdall{margin-left:auto;margin-right:6px;padding:2px 8px;font-size:11px}
 .oa.res em{font-style:normal;font-size:10px;margin-left:2px}
 .task .th1 .tcnt{color:var(--muted);font-weight:400;font-size:11.5px;white-space:nowrap}
+.bulk{flex-wrap:wrap!important;overflow:visible!important}.bulk .chip{white-space:nowrap;flex-shrink:0}   /* chips keep one line each; the row wraps when the pane is narrow */
