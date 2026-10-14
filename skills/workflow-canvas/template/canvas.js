@@ -117,8 +117,12 @@ function render(){
     const res=(attr,done)=>`<button class="oa ok res ${done?'on':''}" ${attr} ${done?'':'disabled'} title="${done?'Resolve — clears this thread':'Resolve — available once Claude has worked on it'}">${ic('check')}</button>`;
     const pill=c=>st(c)==='inprogress'?'<span class="st inprogress">In progress</span>':'';
     const items=[];
-    open.filter(c=>!isShot(c.target)).forEach(c=>items.push({k:st(c),at:c.createdAt,h:`<div class="task" data-task="${c.target}"><div class="th1">${nm(c)}${pill(c)}</div>${msgs(c)}
-        <div class="ovr tr"><button class="oa" data-open="${c.target}" title="Chat">${ic('ai')}</button>${res(`data-tres="${c.id}"`,st(c)==='done')}</div></div>`}));
+    { /* one row per issue/screen: its threads are counted, opened and resolved one by one in the popover */
+      const G=new Map();open.filter(c=>!isShot(c.target)).forEach(c=>{if(!G.has(c.target))G.set(c.target,[]);G.get(c.target).push(c)});
+      G.forEach((th,t)=>{const last=th.slice().sort((a,b)=>((b.thread.at(-1)?.at||b.createdAt)>(a.thread.at(-1)?.at||a.createdAt)?1:-1))[0],all=th.every(c=>st(c)==='done'),k=all?'done':th.some(c=>st(c)==='inprogress')?'inprogress':'todo',
+        cnt=th.length>1?`<span class="tcnt">${th.length} threads</span>`:'',btn=th.length>1?`<button class="oa ok res ${all?'on':''}" data-tresg="${th.map(c=>c.id).join(',')}" ${all?'':'disabled'} title="${all?`Resolve all ${th.length} threads`:'Waiting on Claude — resolve once every thread is done, or one by one in the chat'}">${ic('check')}<em>${th.length}</em></button>`:res(`data-tres="${last.id}"`,all);
+        items.push({k,at:last.thread.at(-1)?.at||last.createdAt,h:`<div class="task" data-task="${t}"><div class="th1">${nm(last)}${cnt}${k==='inprogress'?'<span class="st inprogress">In progress</span>':''}</div>${msgs(last)}
+        <div class="ovr tr"><button class="oa" data-open="${t}" title="Chat">${ic('ai')}</button>${btn}</div></div>`})})}
     S.inbox.forEach(i=>{const th=open.filter(c=>c.target==='card:'+i.id),p=S.prio[i.id]||'low',done=!!i.processed&&th.every(c=>st(c)==='done');
       items.push({k:done?'done':th.some(c=>st(c)==='inprogress')?'inprogress':'todo',at:i.at,h:`<div class="irow" ${i.issue&&sn[i.issue]?`data-goto="${i.issue}"`:''}><div class="iimg"><img src="${esc(i.file)}">
         <div class="lacts"><button class="a pp ${p}" data-prio="${i.id}" title="${PL[p]} priority — click to change">${PS[p]}</button></div>
@@ -691,3 +695,7 @@ function showPrev(it,on,again){const c=document.getElementById('c-'+it.cid)?.clo
   const fit=()=>{const w=im.offsetWidth,h=S.prevH?.[it.cid]||im.offsetHeight,nh=w*im.naturalHeight/(im.naturalWidth||1);if(nh<=h+1){im.style.height=h+'px';im.style.objectFit='contain';im.style.objectPosition='center bottom'}else{im.style.height='';im.style.objectFit='';im.style.objectPosition=''}im.style.aspectRatio='auto'};
   if(!again){S.prevH=S.prevH||{};S.prevH[it.cid]=im.offsetHeight}if(S.prevH?.[it.cid])im.style.height=S.prevH[it.cid]+'px';
   im.onload=()=>{im.onload=null;fit()};im.src=it.prev.img;if(im.complete&&im.naturalWidth&&im.getAttribute('src')===it.prev.img)fit()}
+
+window.addEventListener('click',e=>{const b=e.target.closest('[data-tresg]');if(!b)return;e.stopImmediatePropagation();e.preventDefault();if(b.disabled)return;
+  const ids=b.dataset.tresg.split(','),gone=S.comments.filter(c=>ids.includes(c.id));S.comments=S.comments.filter(c=>!ids.includes(c.id));render();gone.forEach(c=>post(`api/comments/${c.id}/flags`,{resolved:true}));
+  toast(`Resolved ${gone.length} threads`,()=>{S.comments.push(...gone);render();gone.forEach(c=>post(`api/comments/${c.id}/flags`,{resolved:false}))})},true);
