@@ -40,7 +40,7 @@ The first build with a page name (`python3 build.py <data> <page>.html`) is reme
 | field | notes |
 |---|---|
 | `section` | an app area (New order, Eligibility…), never a source |
-| tags | written in the text: `@UX-Gap`, `@Dev-Gap`, `@Cosmetic-Gap` in the title or details (shown as a grey chip; the Tag filter reads them). When you're sure of the gap type, add one at the end of the title; otherwise leave it for the user |
+| tags | written in the text: `@UX-Gap`, `@Dev-Gap`, `@Cosmetic-Gap` in the title or details (shown as a grey chip; the Tag filter reads them). When you're sure of the gap type, add one at the end of the title; otherwise leave it for the user. What they mean, judged against the design reference: **Dev-Gap** = the build differs from the design (the design is right); **UX-Gap** = the design itself has the problem, or has no answer for this case (only when the reference is wrong or silent); **Cosmetic-Gap** = a visual-only difference (spacing, type, colour, alignment). If the design gets it right, it is never a UX-Gap |
 | `title` | the heading, and the presenting cue: a few words that say the issue on their own |
 | `what` | details, only what the title can't say (often empty). Inline `<b> <i> <code> <br>` allowed. On the canvas, title and details edit as one box: the first line is the title, Enter goes to the details, Shift+Enter adds a line break inside the title |
 | `img`, `ts` | screenshot path relative to the canvas; video time |

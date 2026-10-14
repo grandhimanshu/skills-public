@@ -675,3 +675,4 @@ html.view .lane.xl{display:none}
 .bulk{flex-wrap:wrap!important;overflow:visible!important}.bulk .chip{white-space:nowrap;flex-shrink:0}   /* chips keep one line each; the row wraps when the pane is narrow */
 .bulk{justify-content:flex-start!important}
 .view [data-read]{pointer-events:none;cursor:default}   /* unread dots show (new since the last deployment) but can't be toggled */
+.a.resb{color:#2F7D4F;border-color:#BFE1CB;background:#EEF8F1;visibility:visible!important}.a.resb em{font-style:normal;font-size:.8em;margin-left:2px}.acts:has(.resb){opacity:1}
