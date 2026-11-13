@@ -1,6 +1,13 @@
 ---
 name: design-wf-canvas
-description: Lay out a product flow as screenshots joined by labelled arrows on a pan/zoom canvas, where the user leaves comments as tasks for Claude, marks steps read, deletes steps (the flow reconnects itself). Use when the user wants to map, review or document a user journey or workflow from screenshots, or says "workflow canvas", "flow canvas", "map this flow", "workflow board". Has its own template (same building blocks as design-qa-canvas) — copy it, never rebuild the UI. Also runs its review loop: watching the user's comments and new screenshots ("watch comments", "pick up screenshots"). Default port 4300.
+description: >-
+  Lay out a product flow as screenshots joined by labelled arrows on a pan/zoom canvas, where the
+  user leaves comments as tasks for Claude, marks steps read, deletes steps (the flow reconnects
+  itself). Use when the user wants to map, review or document a user journey or workflow from
+  screenshots, or says "workflow canvas", "flow canvas", "map this flow", "workflow board". Has
+  its own template (same building blocks as design-qa-canvas) — copy it, never rebuild the UI.
+  Also runs its review loop: watching the user's comments and new screenshots ("watch comments",
+  "pick up screenshots"). Default port 4300.
 ---
 
 # design-wf-canvas

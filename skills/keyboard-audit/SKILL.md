@@ -1,6 +1,10 @@
 ---
 name: keyboard-audit
-description: Tests keyboard interactions for Storybook components against WCAG 2.2 AA and repo interaction docs. Navigates stories via Chrome MCP, checks focus/activation/dismiss behaviors, and writes a markdown report. Use when auditing keyboard accessibility for one or all components. Args: optional comma-separated component names or group names (e.g. "Button, Dropdown" or "chat").
+description: >-
+  Tests keyboard interactions for Storybook components against WCAG 2.2 AA and repo interaction
+  docs. Navigates stories via Chrome MCP, checks focus/activation/dismiss behaviors, and writes a
+  markdown report. Use when auditing keyboard accessibility for one or all components. Args:
+  optional comma-separated component names or group names (e.g. "Button, Dropdown" or "chat").
 ---
 
 # Keyboard Audit Skill
