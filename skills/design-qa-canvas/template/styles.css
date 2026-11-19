@@ -484,14 +484,14 @@ details.more .w{font-size:12.5px;color:#3C3731;margin-top:6px}
 .card{container-type:inline-size}
 .card .shot,.card .noshot{border-radius:calc(100cqw * 12 / var(--zw,1712))!important}
 .card .cap{padding:calc(100cqw * 14 / var(--zw,1712)) 0 0;gap:0}
-.card .trow h3,.card.grp .gi .trow h3{font-size:calc(100cqw * 24 / var(--zw,1712))!important;line-height:1.35;font-weight:500;margin:0;display:block}
+.card .trow h3,.card.grp .gi .trow h3{font-size:calc(var(--tu,0.36px) * 24)!important;line-height:1.35;font-weight:500;margin:0;display:block}
 .trow h3 .snt{color:var(--muted);font-weight:400;margin-right:.35em}
 .trow h3 .a{display:inline-flex;vertical-align:.12em;align-items:center;justify-content:center;height:1.25em;min-width:1.25em;padding:0 .3em;margin-right:.3em;border-radius:.3em;border:1px solid var(--line);background:#fff;font-size:.72em;font-weight:600;line-height:1}
 .trow h3 .pp.high{background:var(--high);color:#fff;border-color:var(--high)}.trow h3 .pp.med{color:#A8650A;background:#FDF6EC;border-color:#F2D7AE}.trow h3 .pp.low{color:var(--muted)}
 .trow h3 .rd{border-color:#C9D8FB;background:var(--blue-bg)}.trow h3 .rd i{width:.42em;height:.42em;border-radius:50%;background:var(--blue)}
 .trow h3 .dtog{font-size:.72em;color:var(--muted);font-weight:500;margin-left:.4em;display:inline-flex;align-items:center;gap:.2em;vertical-align:.08em}
 .trow h3 .dtog svg{width:1em;height:1em;transition:transform .15s}.trow h3 .dtog.up svg{transform:rotate(180deg)}
-.card .body{font-size:calc(100cqw * 20 / var(--zw,1712))!important;margin-top:.35em;overflow:visible;max-height:none!important}.card .body.shut{display:none}.card .body::after{display:none}
+.card .body{font-size:calc(var(--tu,0.36px) * 20)!important;margin-top:.35em;overflow:visible;max-height:none!important}.card .body.shut{display:none}.card .body::after{display:none}
 .card .more-btn,.card .lacts .pp,.card .lacts .rd{display:none!important}
 /* hover-only actions: on the screenshot (single card) or at the right of each issue row (shared card) */
 .card .acts{opacity:1}.card .acts .hv{visibility:hidden}.card:hover .acts .hv{visibility:visible}
@@ -502,7 +502,7 @@ details.more .w{font-size:12.5px;color:#3C3731;margin-top:6px}
 .card.grp .gi{padding:calc(100cqw * 10 / var(--zw,1712)) 6px}
 
 /* row-level actions (shared card) scale with the heading, like the badges inside it */
-.gi .racts{font-size:calc(100cqw * 24 / var(--zw,1712));top:calc(100cqw * 10 / var(--zw,1712));right:.3em;gap:.25em}
+.gi .racts{font-size:calc(var(--tu,0.36px) * 24);top:calc(100cqw * 10 / var(--zw,1712));right:.3em;gap:.25em}
 .gi .racts .a{height:1.25em;min-width:1.25em;padding:0 .3em;border-radius:.3em;font-size:.72em;gap:.15em}
 .gi .racts .a svg{width:.85em;height:.85em}
 .gi .trow{padding-right:4.6em}.gi .trow h3{padding-right:0}
@@ -533,7 +533,7 @@ details.more .w{font-size:12.5px;color:#3C3731;margin-top:6px}
 .card .lacts .pp{display:inline-flex!important}
 /* comment button: blue only when Claude replied last (needs your attention); otherwise plain with the count */
 .acts .cmi.has:not(.ai),.racts .cmi.has:not(.ai){color:#3C3731;border-color:var(--line);background:#fff}
-.card .moved{display:block;margin-top:.3em;font-size:calc(100cqw * 16 / var(--zw,1712));color:var(--blue);background:none;border:0;padding:0;cursor:pointer;text-align:left}.card .moved:hover{text-decoration:underline}
+.card .moved{display:block;margin-top:.3em;font-size:calc(var(--tu,0.36px) * 16);color:var(--blue);background:none;border:0;padding:0;cursor:pointer;text-align:left}.card .moved:hover{text-decoration:underline}
 /* sticky bulk-action bar: no background, so the list shows through */
 .bulk{position:sticky;top:0;z-index:3;display:flex;justify-content:flex-end;gap:6px;padding:6px 12px;margin-bottom:-6px;pointer-events:none}.bulk .chip{pointer-events:auto;box-shadow:0 1px 4px rgba(0,0,0,.10);cursor:pointer}.bulk .chip:hover{border-color:#CFC9BF}
 .cfm{position:fixed;inset:0;z-index:100;background:rgba(27,23,19,.28);display:flex;align-items:center;justify-content:center}.cfm-b{background:#fff;border-radius:12px;padding:18px 18px 14px;max-width:340px;box-shadow:0 12px 40px rgba(0,0,0,.22);font-size:14px}.cfm-b p{margin:0 0 14px;line-height:1.45}.cfm-a{display:flex;justify-content:flex-end;gap:8px}.cfm .chip{padding:5px 12px;font-size:13px;cursor:pointer}.chip.dark{background:var(--ink);color:#fff;border-color:var(--ink)}
@@ -608,11 +608,11 @@ html.noprio .pp,html.noprio .card .lacts .pp,html.noprio .trow h3 .a.pp,html.nop
 .trow h3 .rd{width:auto;min-width:1.7em;height:1.15em;padding:0;border-radius:.6em;background:var(--blue-bg);box-shadow:inset 0 0 0 max(.5px,.045em) #B9CCF7!important}.trow h3 .rd i{width:.46em;height:.46em}
 .trow h3 .rd:hover{box-shadow:inset 0 0 0 max(.5px,.045em) var(--blue)!important}.trow h3 .rd:hover i{transform:none}
 /* + Add issue: the last row under a card's issues, shown on hover (QA) */
-.card .addrow{display:block;visibility:hidden;margin-top:calc(100cqw * 8 / var(--zw,1712));padding:calc(100cqw * 6 / var(--zw,1712)) 0;font-size:calc(100cqw * 20 / var(--zw,1712));color:var(--muted);background:none;border:0;cursor:pointer;text-align:left}.card:hover .addrow{visibility:visible}.card .addrow:hover{color:var(--blue)}
+.card .addrow{display:block;visibility:hidden;margin-top:calc(100cqw * 8 / var(--zw,1712));padding:calc(100cqw * 6 / var(--zw,1712)) 0;font-size:calc(var(--tu,0.36px) * 20);color:var(--muted);background:none;border:0;cursor:pointer;text-align:left}.card:hover .addrow{visibility:visible}.card .addrow:hover{color:var(--blue)}
 /* title-row read pill: same height as the priority badge */
 .trow h3 .rd{height:calc(1.2em / .7);min-width:1.7em;border-radius:.4em}.trow h3 .rd i{width:.62em;height:.62em}
 /* + Add issue: a row like the issues above it (separator, padding, title size, text aligned) */
-.card .addrow{display:block;width:100%;margin:0;border:0;border-top:1px solid var(--line);border-radius:0;padding:calc(100cqw * 10 / var(--zw,1712)) 6px;font-size:calc(100cqw * 24 / var(--zw,1712));line-height:1.35;font-weight:500;text-align:left;color:var(--muted);background:none;cursor:pointer}
+.card .addrow{display:block;width:100%;margin:0;border:0;border-top:1px solid var(--line);border-radius:0;padding:calc(100cqw * 10 / var(--zw,1712)) 6px;font-size:calc(var(--tu,0.36px) * 24);line-height:1.35;font-weight:500;text-align:left;color:var(--muted);background:none;cursor:pointer}
 .card:not(.grp) .addrow{padding-left:0;padding-right:0;margin-top:calc(100cqw * 10 / var(--zw,1712))}
 .card .addrow:hover{color:var(--blue);background:rgba(0,0,0,.03)}
 .card.grp .addrow{padding-left:6.6px}
@@ -714,9 +714,9 @@ html.view .lane.xl:not([data-xl="x:fix"]){display:none}
 .card:not(:hover) .lacts .opn{visibility:hidden}
 
 /* three-way view control (Issue | Design | Fix) in the screenshot's top-left corner; replaces the old Design tag and compare button */
-.vsw{position:absolute;top:8px;left:8px;z-index:3;display:none;padding:1px;gap:1px;border-radius:8px;background:rgba(255,255,255,.97);border:1px solid var(--line);box-shadow:0 2px 6px rgba(0,0,0,.12);transform:scale(var(--acs,1));transform-origin:0 0}
-.card:hover .vsw,.card.sel .vsw,.card.grp.sel .vsw,.card.showprev .vsw{display:inline-flex}
-.vsw button{border:0;background:transparent;font:600 11px/20px inherit;height:20px;padding:0 8px;border-radius:6px;cursor:pointer;color:#3C3731;white-space:nowrap}
+.vsw{position:absolute;top:6px;left:6px;z-index:3;display:none;padding:1px;gap:1px;border-radius:7px;background:rgba(255,255,255,.97);border:1px solid var(--line);box-shadow:0 2px 6px rgba(0,0,0,.12);transform:scale(calc(var(--acs,1)*.72));transform-origin:0 0}
+.card:hover .vsw,.vsw.flash{display:inline-flex}   /* only while the pointer is over the card */
+.vsw button{border:0;background:transparent;font-family:inherit;font-weight:600;font-size:10px;line-height:1;height:16px;padding:0 7px;min-width:34px;display:inline-flex;align-items:center;justify-content:center;border-radius:5px;cursor:pointer;color:#3C3731;white-space:nowrap}
 .vsw button:hover:not([disabled]):not(.on){background:#f1eee8}.vsw button.on{background:var(--ink);color:#fff}.vsw button[data-view=fix].on{background:#1A7F4B}.vsw button[disabled]{opacity:.38;cursor:default}
 .card.showfix .shot{outline:2px solid #1A7F4B!important;outline-offset:-2px}.card.showfix .opn.nor{display:inline-flex!important}
 /* Fixed tab */

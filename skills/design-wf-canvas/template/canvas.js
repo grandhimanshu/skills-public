@@ -34,7 +34,7 @@ async function load(){
   const j=u=>fetch(API+u,{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error(u);return r.json()});
   let p={},c={comments:[]},inb={items:[]},stt={seen:[]},ed={},rm={},sg={};
   try{[p,c,inb,stt,ed,rm,sg,ad]=await Promise.all(['api/priorities','api/comments','api/inbox','api/state','api/edit','api/removed','api/suggestions','api/added'].map(j));S.fixed=new Set(Object.keys(await j('api/fixed').catch(()=>({}))))}catch{S.offline=true}
-  const ren=ed.sections||{};if(ren.__title__)D.title=ren.__title__;/* the user's own page title (saved like a section rename) */document.getElementById('ttl').textContent=D.title;document.title=D.title;
+  const ren=ed.sections||{};S.ren=ren;/* saved renames, keyed by the original name: flowLayout applies them when it builds each flow's name */if(ren.__title__)D.title=ren.__title__;/* the user's own page title (saved like a section rename) */document.getElementById('ttl').textContent=D.title;document.title=D.title;
   S.sections=D.sections.map(x=>ren[x]||x);
   const mk=i=>{const e0=ed[i.cid]||{},e=e0.out?{...e0,what:[e0.out,e0.what].filter(Boolean).join('<br>')}:e0,acc=(i.sugg||[]).filter(([id])=>sg[id]==='accepted').map(([,t])=>'• '+t.replace(/^<b>[^<]*<\/b>\s*/,''));
     const what=(e.what??i.what??'');return {...i,tags:e.tags||i.tags||[],screen:e.screen!==undefined?e.screen:(i.screen||''),section:ren[i.section]||i.section,title:e.title??i.title,out:'',
@@ -82,8 +82,8 @@ function flowLayout(){const ids=new Set(S.items.map(i=>i.cid));let E=(D.edges||[
   S.grid=new Set();const gm={};Object.keys(comp).forEach(r=>{const g=comp[r];if(g.length===1&&g[0].group){const n=g[0].group;if(gm[n]){gm[n].push(g[0]);delete comp[r]}else gm[n]=g}});
   Object.values(comp).sort((a,b)=>D.steps.findIndex(x=>x.cid===a[0].cid)-D.steps.findIndex(x=>x.cid===b[0].cid)).forEach(g=>{
     g.sort((a,b)=>depth[a.cid]-depth[b.cid]||D.steps.findIndex(x=>x.cid===a.cid)-D.steps.findIndex(x=>x.cid===b.cid));
-    const o=g[0],name=(g.length>1||o.group)&&g.every(i=>i.group&&i.group===o.group)&&!E.some(e=>e[0]===o.cid||e[1]===o.cid)?o.group:(D.flowNames||{})[o.cid]||o.flow||o.title.replace(/<[^>]+>/g,'');let nm=name,j=2;while(S.sections.includes(nm))nm=name+' ('+(j++)+')';
-    S.sections.push(nm);if(o.group&&name===o.group)S.grid.add(nm);g.forEach(i=>{i.section=nm;i.depth=depth[i.cid];S.rank[i.cid]=k++})})}
+    const o=g[0],base=(g.length>1||o.group)&&g.every(i=>i.group&&i.group===o.group)&&!E.some(e=>e[0]===o.cid||e[1]===o.cid)?o.group:(D.flowNames||{})[o.cid]||o.flow||o.title.replace(/<[^>]+>/g,''),name=(S.ren||{})[base]||base;let nm=name,j=2;while(S.sections.includes(nm))nm=name+' ('+(j++)+')';
+    S.sections.push(nm);if(o.group&&base===o.group)S.grid.add(nm);g.forEach(i=>{i.section=nm;i.depth=depth[i.cid];S.rank[i.cid]=k++})})}
 /* ---- straight arrows. Each step sits level with the step before it (its screenshot's centre, so a longer caption never shifts it).
    Columns are already given (depth). Per flow: (1) order each column by the happy path: a step follows its "ref" (the topmost of its predecessors), siblings in the order their edges are listed, so the first-listed branch is on top;
    (2) the first-listed child of a step stays level with it; other children, and extra arrows into a join, bend if they have to;
@@ -238,7 +238,7 @@ function openPicker(cid,btn){const M=document.getElementById('menu'),p=pr({cid})
   M.innerHTML=['high','med','low'].map(v=>`<button data-pick="${v}" class="pp ${v} ${p===v?'on':''}" title="${PL[v]}">${PS[v]}</button>`).join('');M.dataset.for=cid;placeMenu(M,btn)}
 function openMenu(cid,btn){const M=document.getElementById('menu'),it=S.items.find(i=>i.cid===cid);M.className='';
   const inG=!!document.getElementById('c-'+cid)?.closest('.grp');
-  M.innerHTML=(inG?`<button data-mi="split">${ic('split')}Move to its own card</button>`:`<button data-mi="combine">${ic('merge')}Combine with another card…</button>`)+(FLOW?'':`<button data-mi="fix">${ic('cfix')}Mark fixed</button>`)+`<hr><button data-mi="read">${ic('dot')}${unread(it)?'Mark as read':'Mark as unread'}</button><hr><button data-mi="del" class="danger">${ic('trash')}Delete issue</button>`;
+  M.innerHTML=(inG?`<button data-mi="split">${ic('split')}Move to its own card</button>`:`<button data-mi="combine">${ic('merge')}Combine with another card…</button>`)+(FLOW?'':`<button data-mi="fix">${ic('cfix')}Mark fixed</button>`)+`<hr><button data-mi="read">${ic('dot')}${unread(it)?'Mark as read':'Mark as unread'}</button><button data-mi="link">${ic('copy')}Copy link</button><hr><button data-mi="del" class="danger">${ic('trash')}Delete issue</button>`;
   M.dataset.for=cid;placeMenu(M,btn)}
 function menuAct(a,v){const cid=document.getElementById('menu').dataset.for,it=S.items.find(i=>i.cid===cid);closeMenu();
   if(a==='fix'){setFixed([cid],true);return}
@@ -247,6 +247,7 @@ function menuAct(a,v){const cid=document.getElementById('menu').dataset.for,it=S
   else if(a==='split'){const was=it.screen;it.screen='';render();post('api/edit',{cid,screen:''});toast('Moved to its own card',()=>{it.screen=was;render();post('api/edit',{cid,screen:was})})}
   else if(a==='combine'){const M=document.getElementById('menu'),others=S.items.filter(x=>x.section===it.section&&x.cid!==cid&&(!x.screen||x.screen!==it.screen));
     M.innerHTML=`<div class="mh">Show on the same card as…</div>`+others.map(x=>`<button data-comb="${x.cid}"><span class="snt">${num(x)}</span> ${x.title.replace(/<[^>]+>/g,'').slice(0,46)}</button>`).join('')||'<div class="mh">No other cards in this section</div>';M.hidden=false;M.dataset.for=cid;return}
+  else if(a==='link'){copyLink(cid)}
   else if(a==='read'){const was=unread(it);if(was)S.readLocal.add(cid);else{S.readLocal.delete(cid);S.seen.delete(cid)}render();post('api/state',{cid,new:!was})}
   else if(a==='del'){const ids0=ordered().flatMap(g=>g.items.map(i=>i.cid)),di=ids0.indexOf(cid),nx=ids0[di+1]||ids0[di-1],wasSel=S.sel===cid;S.items=S.items.filter(i=>i!==it);if(FLOW)flowLayout();(S.deleted=S.deleted||[]).push(it);render();post('api/removed',{cid,removed:true,title:it.title.replace(/<[^>]+>/g,''),n:String(it.n||'')});if(wasSel&&nx&&!FLOW)stepTo(null,nx);else if(wasSel&&!FLOW)S.sel=null;toast(FLOW?'Step deleted — flow reconnected':'Moved to Deleted',()=>{S.deleted=S.deleted.filter(x=>x!==it);S.items.push(it);if(FLOW)flowLayout();render();post('api/removed',{cid,removed:false});if(!FLOW)stepTo(null,cid)})}}
 function sgBar(cid,ask){const bar=document.querySelector(`[data-sgbar="${cid}"]`);if(!bar)return;const n=bar.parentNode.querySelectorAll('[data-sg]:checked').length,all=bar.parentNode.querySelectorAll('[data-sg]').length;
@@ -453,8 +454,11 @@ function markStuck(){const j=document.getElementById('todoJump'),h=S.tab==='inbo
 const CMAX=6000;/* the watcher tells Claude the first CMAX characters of a comment (watch-comments.py); the rest is read from the thread. The note shows only when a comment goes past it */
 document.addEventListener('input',e=>{const ta=e.target.closest&&e.target.closest('textarea[data-newc],textarea[data-reply]');if(!ta)return;const host=ta.closest('.compose')||ta.parentElement;let h=host.nextElementSibling;if(h&&!h.classList.contains('cmax'))h=null;
   if(ta.value.length>CMAX){if(!h){h=document.createElement('div');h.className='cmax';host.insertAdjacentElement('afterend',h)}h.textContent=`Over ${CMAX.toLocaleString()} characters: Claude is told the first ${CMAX.toLocaleString()} and reads the rest from the thread.`}else if(h)h.remove()});
+const openStep=v=>{const it=S.items.find(i=>String(num(i))===v||i.cid===v);if(it){select(it.cid);goTo(it.cid,true);paint()}},hv=()=>new URLSearchParams(location.hash.slice(1)).get('step');
+window.addEventListener('hashchange',()=>{const v=hv();if(v)openStep(v)});
+function copyLink(cid){const it=[...S.items,...(S.fixedItems||[])].find(i=>i.cid===cid);if(!it)return;const base=(location.protocol==='file:'&&D.deploy&&D.deploy.url?D.deploy.url:location.origin+location.pathname).split('#')[0],url=base+'#step='+encodeURIComponent(num(it));const done=()=>toast('Link copied'),fb=()=>{const ta=document.createElement('textarea');ta.value=url;ta.style.cssText='position:fixed;opacity:0';document.body.appendChild(ta);ta.select();let ok=false;try{ok=document.execCommand('copy')}catch{}ta.remove();ok?done():toast('Couldn’t copy. Allow clipboard access and try again.',null,'err')};(navigator.clipboard?.writeText?navigator.clipboard.writeText(url).then(done,fb):Promise.resolve(fb()))}/* ⋯ menu → Copy link: the published address (or this one) plus #step=<number>; opening it selects that step */
 load().then(()=>{probeLocal();const q=new URLSearchParams(location.search);const v=readView();
-  if(v)applyView(v,true);if(q.get('z')){S.z=+q.get('z');paint()}if(q.get('sugg')){const it=ordered().flatMap(g=>g.items).find(i=>i.sugg.length);select(it.cid);goTo(it.cid);paint()}if(q.get('sel')){const id=ordered().flatMap(g=>g.items)[+q.get('sel')-1]?.cid;select(id);goTo(id);paint()}});
+  if(v)applyView(v,true);if(q.get('z')){S.z=+q.get('z');paint()}if(q.get('sugg')){const it=ordered().flatMap(g=>g.items).find(i=>i.sugg.length);select(it.cid);goTo(it.cid);paint()}if(q.get('sel')){const id=ordered().flatMap(g=>g.items)[+q.get('sel')-1]?.cid;select(id);goTo(id);paint()}if(hv())openStep(hv())});
 
 // ---- comments: Enter sends (Shift+Enter = new line); a reply re-opens the task for Claude
 async function sendFrom(ta){const v=ta.value.trim();if(!v)return;const t=S.popT;delete localStorage[DKEY(ta)];ta.value='';
@@ -514,8 +518,8 @@ if(FLOW){/* flow mode: the Issues tab becomes a Screens tree; To-dos opens first
 VP.addEventListener('pointermove',e=>{S.mx=e.clientX;S.my=e.clientY},{passive:true});
 /* --zw: on-screen width a card's screenshot gets when 0 zooms to it, so text sized N/--zw of the card shows at N px there */
 function setZW(){const k=VP.clientWidth+'x'+VP.clientHeight+':'+document.querySelectorAll('#world .card').length;if(k===S.zwk)return;S.zwk=k;
-  document.querySelectorAll('#world .card').forEach(c=>{const im=c.querySelector('.shot,.noshot');if(!im)return;const w=im.offsetWidth,h=im.offsetHeight;if(!w||!h){S.zwk=null;return}
-    c.style.setProperty('--zw',Math.min(4*w,VP.clientWidth-64,(VP.clientHeight-140)*w/h))})}
+  const us=[];document.querySelectorAll('#world .card').forEach(c=>{const im=c.querySelector('.shot,.noshot');if(!im)return;const w=im.offsetWidth,h=im.offsetHeight;if(!w||!h){S.zwk=null;return}
+    const z=Math.min(4*w,VP.clientWidth-64,(VP.clientHeight-140)*w/h);c.style.setProperty('--zw',z);us.push(c.offsetWidth/z)});if(us.length)W().style.setProperty('--tu',us.reduce((a,b)=>a+b)/us.length+'px')/* one text unit for the whole canvas: headings and details are the same size on every card */}
 document.addEventListener('load',e=>{if(e.target.classList?.contains('shot')){S.zwk=null;clearTimeout(S.zwt);S.zwt=setTimeout(setZW,50)}},true);addEventListener('resize',()=>{S.zwk=null;setZW()});setInterval(setZW,1500);new MutationObserver(()=>{S.zwk=null;setZW()}).observe(W(),{childList:true,subtree:true});/* redrawn cards get --zw before they paint, so text never jumps */
 /* resolving a thread keeps the comments popover open while that target still has unresolved threads */
 /* commenting, replying or resolving on a card marks that card read */
@@ -578,7 +582,7 @@ document.addEventListener('click',e=>{const ro=e.target.closest('[data-resopen]'
 /* Alt: flip the selected card between its screenshot and its reference / previous one */
 addEventListener('keydown',e=>{if(e.key!=='Alt'||e.repeat||e.target.closest?.('input,textarea,[contenteditable=true]'))return;const c=document.getElementById('c-'+S.sel)?.closest('.card'),b=c?.querySelector('.shotw [data-cmp]')||c?.querySelector('[data-cmp]');if(b){e.preventDefault();b.click()}});
 /* ---- keyboard shortcuts, from the ? button by the zoom controls */
-function kbList(){const r=[['0','Zoom to the screenshot under the cursor · again: whole canvas'],['Enter','Edit the selected '+(FLOW?'step':'issue')+' (title and details)'],['Space','Mark read and go to the next'+(FLOW?' step':' issue')+(FLOW?'':'')],['Alt',FLOW?'Flip to the previous screenshot':'Flip to the design reference'],['+ / −','Zoom in / out'],['⌘ + scroll','Zoom at the cursor']];
+function kbList(){const r=[['0','Zoom to the screenshot under the cursor · again: whole canvas'],['Enter','Edit the selected '+(FLOW?'step':'issue')+' (title and details)'],['Space','Mark read and go to the next'+(FLOW?' step':' issue')+(FLOW?'':'')],['Alt',FLOW?'Flip to the previous screenshot':'Flip to the design reference'],['+ / −','Zoom in / out'],['⌘ + scroll','Zoom at the cursor'],['⌘ /  or  ⌘ \\','Show / hide the side pane (Ctrl on Windows)']];
   if(!FLOW)r.splice(2,0,['← →','Previous / next issue (doesn’t mark read)']);if(FLOW)r.splice(2,0,['→','Next step along the flow (then the next branch)'],['←','Back along the arrows · on a first step: end of the previous flow'],['↑ ↓','Previous / next card in canvas order']);
   r.push(['Delete','Delete the selected '+(FLOW?'step':'issue')+' (one at a time)'],['Esc','Close a popover']);return r.map(([k,t])=>`<div class="kbr"><kbd>${k}</kbd><span>${t}</span></div>`).join('')}
 document.addEventListener('click',e=>{const b=e.target.closest('#kbbtn'),P=document.getElementById('kbpop');if(b){e.stopPropagation();if(P.hidden||P.dataset.k==='more'){P.innerHTML=`<div class="kbh">Shortcuts</div>${kbList()}`;P.hidden=false}else P.hidden=true;P.dataset.k='';return}if(P&&!P.hidden&&!e.target.closest('#kbpop,#morebtn'))P.hidden=true},true);
@@ -638,6 +642,7 @@ function flowKey(k){const now=performance.now();S.instant=now-(S.lastKey||0)<700
 S.showPrio=localStorage.qaPrio?localStorage.qaPrio==='1':!FLOW;function applyPrio(){document.documentElement.classList.toggle('noprio',!S.showPrio)}applyPrio();
 /* ---- collapse the side pane for more canvas */
 function setSbCol(v){S.sbCol=v;localStorage.qaSbCol=v?'1':'0';document.documentElement.classList.toggle('sbcol',v);requestAnimationFrame(()=>{typeof drawArrows==='function'&&FLOW&&drawArrows();paint()})}
+addEventListener('keydown',e=>{if(!(e.metaKey||e.ctrlKey)||e.altKey||e.shiftKey||e.repeat||(e.key!=='/'&&e.key!=='\\'))return;e.preventDefault();setSbCol(!document.documentElement.classList.contains('sbcol'))});/* ⌘ / or ⌘ \ (Ctrl on Windows) shows or hides the side pane, like Figma's hide-UI */
 document.addEventListener('click',e=>{if(e.target.closest('#sbcol')){e.stopPropagation();setSbCol(true)}else if(e.target.closest('#sbopen')){e.stopPropagation();setSbCol(false)}},true);
 if(localStorage.qaSbCol==='1')setSbCol(true);
 
@@ -791,7 +796,7 @@ window.addEventListener('click',e=>{
   const p1=e.target.closest('[data-purge1]');if(p1){e.stopImmediatePropagation();e.preventDefault();purge([p1.dataset.purge1]);return}
   const pa=e.target.closest('[data-delallc]');if(pa){e.stopImmediatePropagation();e.preventDefault();const ids=S.deleted.map(i=>i.cid);confirmBox(`Delete all ${ids.length} for good? Their comments go too.`,'Delete all',()=>purge(ids));return}
   const xt=e.target.closest('[data-xltog]');if(xt&&!e.target.closest('button')){e.stopImmediatePropagation();const k=xt.dataset.xltog;S.openSecs.has(k)?S.openSecs.delete(k):S.openSecs.add(k);render();return}
-  const xg=e.target.closest('[data-xgo]');if(xg&&!e.target.closest('button')){e.stopImmediatePropagation();const k=xg.closest('[data-secw]')?.dataset.secw,id=xg.dataset.xgo;/* open the section on the canvas too, so the card has a place to pan to */if(k){S.openSecs.add(k);if(document.querySelector(`[data-xl="${k}"]`)?.classList.contains('shut'))render()}requestAnimationFrame(()=>requestAnimationFrame(()=>{select(id,false);goTo(id,true)}));return}
+  const xg=e.target.closest('[data-xgo]');if(xg&&!e.target.closest('button')){e.stopImmediatePropagation();const id=xg.dataset.xgo,k=xg.closest('[data-secw]')?.dataset.secw||document.getElementById('c-'+id)?.closest('[data-xl]')?.dataset.xl;/* open the section on the canvas too, so the card has a place to pan to */if(k){S.openSecs.add(k);if(document.querySelector(`[data-xl="${k}"]`)?.classList.contains('shut'))render()}requestAnimationFrame(()=>requestAnimationFrame(()=>{select(id,false);goTo(id,true)}));return}
 },true);
 
 // ---- your view is yours: filters, zoom, selection, open sections and tab survive updates and reloads (per canvas, in this browser)
